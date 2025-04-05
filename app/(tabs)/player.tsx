@@ -9,6 +9,7 @@ import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { usePlayer, sampleTracks } from '@/context/PlayerContext';
 
 // Get screen dimensions for responsive layout
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -16,25 +17,22 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 // Define icon types to avoid TypeScript errors
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-// Mock data for the currently playing track
-const currentTrack = {
-  id: '1',
-  title: 'Happy Vibes',
-  artist: 'Positive Energy',
-  duration: 200, // in seconds
-  icon: 'music-note-eighth' as IconName,
-  coverColor: '#FF7B54', // Primary Light from the new sunset-inspired color scheme
-  secondaryColor: '#8E92EF', // Secondary Light from the new sunset-inspired color scheme
-  mediaSource: require('@/assets/audio/sample.mp4'), // Fixed path to MP4 file
-  isVideo: true, // Set to true for MP4 video files, false for audio-only MP4 files
-};
-
 export default function PlayerScreen() {
-  const [isPlaying, setIsPlaying] = useState(false);
+  // Access the global player context
+  const { 
+    currentTrack, 
+    isPlaying, 
+    setCurrentTrack, 
+    setIsPlaying,
+    togglePlayPause,
+    setPlaybackInstance 
+  } = usePlayer();
+  
+  // Local state for UI
   const [isFavorite, setIsFavorite] = useState(false);
   const [progress, setProgress] = useState(0); // current progress in seconds
   const [volume, setVolume] = useState(0.8);
-  const [duration, setDuration] = useState(currentTrack.duration);
+  const [duration, setDuration] = useState(currentTrack?.duration || 180);
   const [showControls, setShowControls] = useState(true);
   const videoRef = useRef<Video>(null);
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -42,6 +40,84 @@ export default function PlayerScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  // Register the video reference with the PlayerContext
+  // This is critical for the MiniPlayer to control playback from other screens
+  useEffect(() => {
+    if (videoRef.current) {
+      console.log("Registering video reference with PlayerContext");
+      setPlaybackInstance(videoRef.current);
+      
+      // Clean up when unmounting
+      return () => {
+        console.log("Cleaning up video reference");
+        // Don't null out the playback instance if we're just navigating away temporarily
+        // This allows the MiniPlayer to continue controlling it
+        // setPlaybackInstance(null);
+      };
+    }
+  }, [videoRef.current, setPlaybackInstance]);
+  
+  // Local handler for play/pause that updates both local and global state
+  const handlePlayPause = async () => {
+    console.log("Local play/pause handler called");
+    togglePlayPause();
+  };
+
+  // Use the local state to handle immediate UI feedback
+  useEffect(() => {
+    if (videoRef.current) {
+      console.log("Updating local UI based on global playing state:", isPlaying);
+    }
+  }, [isPlaying]);
+
+  // Sync the video playback with the global playing state
+  useEffect(() => {
+    // Only attempt to sync if we're on the player screen
+    const isFocused = router.canGoBack(); // A simple way to check if we're on the player screen
+    
+    const syncPlaybackState = async () => {
+      if (!videoRef.current || !currentTrack || !isFocused) {
+        // Skip if video ref is not available, no track is selected, or screen is not in focus
+        return;
+      }
+      
+      try {
+        // Get the current status to make sure the video is loaded
+        const status = await videoRef.current.getStatusAsync();
+        
+        if (!status.isLoaded) {
+          console.log("Video not loaded yet, skipping sync");
+          return;
+        }
+        
+        if (isPlaying && !status.isPlaying) {
+          console.log("Global state is playing but video is paused, playing video");
+          await videoRef.current.playAsync();
+        } else if (!isPlaying && status.isPlaying) {
+          console.log("Global state is paused but video is playing, pausing video");
+          await videoRef.current.pauseAsync();
+        }
+      } catch (error) {
+        console.error("Error syncing playback state:", error);
+      }
+    };
+    
+    // Use a small delay to ensure the video component is fully initialized
+    const timeoutId = setTimeout(() => {
+      syncPlaybackState();
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, [isPlaying, currentTrack, router]);
+
+  // Set a sample track if none is selected
+  useEffect(() => {
+    if (!currentTrack) {
+      // Set the first sample track as the current track
+      setCurrentTrack(sampleTracks[0]);
+    }
+  }, [currentTrack, setCurrentTrack]);
 
   // Set initial timer for controls
   useEffect(() => {
@@ -64,7 +140,7 @@ export default function PlayerScreen() {
     }
     
     // Only set timer if controls are visible and it's a video
-    if (showControls && currentTrack.isVideo) {
+    if (showControls && currentTrack?.isVideo) {
       console.log("Starting 3s timer to hide controls");
       controlsTimerRef.current = setTimeout(() => {
         console.log("Timer finished, hiding controls");
@@ -159,11 +235,7 @@ export default function PlayerScreen() {
   const togglePlayback = async () => {
     if (!videoRef.current) return;
     
-    if (isPlaying) {
-      await videoRef.current.pauseAsync();
-    } else {
-      await videoRef.current.playAsync();
-    }
+    handlePlayPause();
     
     // Reset controls visibility timer
     startHideControlsTimer();
@@ -227,20 +299,31 @@ export default function PlayerScreen() {
     startHideControlsTimer();
   };
 
+  // Function to handle the case when no track is available
+  const renderNoTrackSelected = () => {
+    return (
+      <View style={styles.container}>
+        <ThemedText style={styles.noTrackTitle}>No Track Selected</ThemedText>
+        <ThemedText style={styles.noTrackSubtitle}>Select a track to start listening</ThemedText>
+      </View>
+    );
+  };
+
+  // If no track is selected, show a placeholder
+  if (!currentTrack) {
+    return renderNoTrackSelected();
+  }
+
   // If it's a video with lyrics, use a full-screen layout
   if (currentTrack.isVideo) {
     // Calculate transform for slide-up animation
     const translateY = controlsAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: [200, 0], // Slide up from 200px below
+      outputRange: [100, 0],
     });
-    
-    // Calculate opacity for fade-in animation
-    const opacity = controlsAnimation.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 1],
-    });
-    
+
+    const opacity = controlsAnimation;
+
     return (
       <View style={styles.fullScreenContainer}>
         <StatusBar hidden />
@@ -462,13 +545,17 @@ export default function PlayerScreen() {
       {/* Album Art */}
       <View style={styles.mediaContainer}>
         <LinearGradient
-          colors={[currentTrack.coverColor, currentTrack.secondaryColor]}
+          colors={[currentTrack.coverColor || '#FF7B54', currentTrack.secondaryColor || '#8E92EF']}
           style={styles.albumArtGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
           <View style={styles.albumArtInner}>
-            <MaterialCommunityIcons name={currentTrack.icon} size={100} color="rgba(255,255,255,0.8)" />
+            <MaterialCommunityIcons 
+              name={(currentTrack.icon as IconName) || 'music-note'} 
+              size={100} 
+              color="rgba(255,255,255,0.8)" 
+            />
           </View>
         </LinearGradient>
       </View>
@@ -869,5 +956,13 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: '#FFFFFF',
   },
+  noTrackTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  noTrackSubtitle: {
+    fontSize: 18,
+    opacity: 0.8,
+  },
 });
-
