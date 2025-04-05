@@ -1,20 +1,22 @@
 {
   "expo": {
     "name": "Aria",
-    "slug": "Aria",
+    "slug": "aria-music",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "aria",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "description": "A beautiful music streaming app like Spotify",
+    "primaryColor": "#1DB954",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#121212"
       }
     },
     "web": {
@@ -30,9 +32,10 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#121212"
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true
