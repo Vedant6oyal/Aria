@@ -149,6 +149,23 @@ export default function PlayerScreen() {
     }
   };
 
+  const startHideControlsBigTimer = () => {
+    // Clear any existing timer first
+    if (controlsTimerRef.current) {
+      clearTimeout(controlsTimerRef.current);
+      controlsTimerRef.current = null;
+    }
+    
+    // Only set timer if controls are visible and it's a video
+    if (showControls && currentTrack?.isVideo) {
+      console.log("Starting 3s timer to hide controls");
+      controlsTimerRef.current = setTimeout(() => {
+        console.log("Timer finished, hiding controls");
+        hideControlsWithAnimation();
+      }, 2000);
+    }
+  };
+
   // Animate controls showing
   const showControlsWithAnimation = () => {
     console.log("Showing controls with animation");
@@ -238,25 +255,40 @@ export default function PlayerScreen() {
     handlePlayPause();
     
     // Reset controls visibility timer
-    startHideControlsTimer();
+    startHideControlsBigTimer();
   };
+// Function to specifically play music
+// Direct play function that ensures music plays without toggling
+const playDirectly = async () => {
+  console.log("Direct play function called");
+  if (!videoRef.current) return;
+  
+  try {
+    // Play directly without checking current state
+    await videoRef.current.playAsync();
+    // Update the state to reflect that we're playing
+    setIsPlaying(true);
+  } catch (error) {
+    console.error("Error playing directly:", error);
+  }
+};
 
   // Toggle favorite
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
-    startHideControlsTimer();
+    startHideControlsBigTimer();
   };
 
   // Skip to previous track (mock function)
   const skipToPrevious = () => {
     console.log('Skip to previous');
-    startHideControlsTimer();
+    startHideControlsBigTimer();
   };
 
   // Skip to next track (mock function)
   const skipToNext = () => {
     console.log('Skip to next');
-    startHideControlsTimer();
+    startHideControlsBigTimer();
   };
 
   // Handle progress change
@@ -265,7 +297,7 @@ export default function PlayerScreen() {
       await videoRef.current.setPositionAsync(value * 1000);
     }
     setProgress(value);
-    startHideControlsTimer();
+    startHideControlsBigTimer();
   };
 
   // Handle volume change
@@ -296,7 +328,7 @@ export default function PlayerScreen() {
   // Handle when volume sliding is complete
   const handleVolumeSlidingComplete = () => {
     // Reset the timer only once when sliding is finished
-    startHideControlsTimer();
+    playDirectly();
   };
 
   // Function to handle the case when no track is available
