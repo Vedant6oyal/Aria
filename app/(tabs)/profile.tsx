@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { ThemedText } from '@/components/ThemedText';
+import { Notifications } from '@/components/Notifications';
 
 // Mock user data
 const userData = {

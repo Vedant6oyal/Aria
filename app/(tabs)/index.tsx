@@ -2,11 +2,13 @@ import { StyleSheet, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Notifications } from '@/components/Notifications';
 
 // Define icon types to avoid TypeScript errors
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -35,6 +37,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const navigateToPlayer = (item: any) => {
     // In a real app, we would pass the track ID to the player
@@ -49,100 +52,95 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={[colors.gradient[0], colors.gradient[1]]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0.6 }}
-        style={styles.header}
-      >
-        <ThemedText style={styles.greeting}>{getGreeting()}</ThemedText>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialCommunityIcons name="bell-outline" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialCommunityIcons name="cog-outline" size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Recently Played</ThemedText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
-          {recentlyPlayed.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.recentItem} onPress={() => navigateToPlayer(item)}>
-              <LinearGradient
-                colors={[item.color, shadeColor(item.color, 20)]}
-                style={styles.recentCover}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <MaterialCommunityIcons name={item.icon} size={60} color="#FFFFFF" />
-              </LinearGradient>
-              <ThemedText numberOfLines={1} style={styles.recentTitle}>{item.title}</ThemedText>
-              <ThemedText numberOfLines={1} style={styles.recentArtist}>{item.artist}</ThemedText>
+    <>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+        <LinearGradient
+          colors={[colors.gradient[0], colors.gradient[1]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0.6 }}
+          style={styles.header}
+        >
+          <ThemedText style={styles.greeting}>{getGreeting()}</ThemedText>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity 
+              style={styles.iconButton}
+              onPress={() => setShowNotifications(true)}
+            >
+              <MaterialCommunityIcons name="bell-outline" size={24} color={colors.text} />
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Mood Boosters</ThemedText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
-          {featuredPlaylists.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.featuredItem} onPress={() => navigateToPlayer(item)}>
-              <LinearGradient
-                colors={[item.color, shadeColor(item.color, 20)]}
-                style={styles.featuredCover}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <MaterialCommunityIcons name={item.icon} size={80} color="#FFFFFF" />
-              </LinearGradient>
-              <ThemedText numberOfLines={1} style={styles.featuredTitle}>{item.title}</ThemedText>
-              <ThemedText numberOfLines={2} style={styles.featuredDescription}>{item.description}</ThemedText>
+            <TouchableOpacity style={styles.iconButton}>
+              <MaterialCommunityIcons name="cog-outline" size={24} color={colors.text} />
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+          </View>
+        </LinearGradient>
 
-      <View style={[styles.section, styles.visualizerSection]}>
-        <ThemedText style={styles.sectionTitle}>Positive Artists</ThemedText>
-        <View style={styles.visualizerContainer}>
-          {Colors.common.musicVisualizer.map((color, index) => (
-            <View 
-              key={index} 
-              style={[
-                styles.visualizerBar, 
-                { 
-                  backgroundColor: color,
-                  height: 40 + Math.random() * 60,
-                  marginLeft: index > 0 ? 8 : 0
-                }
-              ]} 
-            />
-          ))}
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
-          {recommendedArtists.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.artistItem}>
-              <View style={styles.artistCircle}>
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Recently Played</ThemedText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
+            {recentlyPlayed.map((item) => (
+              <TouchableOpacity key={item.id} style={styles.recentItem} onPress={() => navigateToPlayer(item)}>
                 <LinearGradient
                   colors={[item.color, shadeColor(item.color, 20)]}
-                  style={styles.artistCover}
+                  style={styles.recentCover}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <MaterialCommunityIcons name={item.icon} size={50} color="#FFFFFF" />
+                  <MaterialCommunityIcons name={item.icon} size={60} color="#FFFFFF" />
                 </LinearGradient>
-              </View>
-              <ThemedText numberOfLines={1} style={styles.artistName}>{item.name}</ThemedText>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    </ScrollView>
+                <ThemedText numberOfLines={1} style={styles.recentTitle}>{item.title}</ThemedText>
+                <ThemedText numberOfLines={1} style={styles.recentArtist}>{item.artist}</ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Featured Playlists</ThemedText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
+            {featuredPlaylists.map((item) => (
+              <TouchableOpacity key={item.id} style={styles.featuredItem}>
+                <LinearGradient
+                  colors={[item.color, shadeColor(item.color, 20)]}
+                  style={styles.featuredCover}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <MaterialCommunityIcons name={item.icon} size={70} color="#FFFFFF" />
+                </LinearGradient>
+                <ThemedText numberOfLines={1} style={styles.featuredTitle}>{item.title}</ThemedText>
+                <ThemedText numberOfLines={1} style={styles.featuredDescription}>{item.description}</ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Artists You Might Like</ThemedText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
+            {recommendedArtists.map((item) => (
+              <TouchableOpacity key={item.id} style={styles.artistItem}>
+                <View style={styles.artistCircle}>
+                  <LinearGradient
+                    colors={[item.color, shadeColor(item.color, 20)]}
+                    style={styles.artistCover}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <MaterialCommunityIcons name={item.icon} size={50} color="#FFFFFF" />
+                  </LinearGradient>
+                </View>
+                <ThemedText numberOfLines={1} style={styles.artistName}>{item.name}</ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </ScrollView>
+      
+      <Notifications 
+        visible={showNotifications} 
+        onClose={() => setShowNotifications(false)} 
+      />
+    </>
   );
 }
 
