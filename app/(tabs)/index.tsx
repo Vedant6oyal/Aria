@@ -40,8 +40,16 @@ export default function HomeScreen() {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const navigateToPlayer = (item: any) => {
-    // In a real app, we would pass the track ID to the player
-    router.push('/player');
+    // Navigate to the playlist screen instead of directly to the player
+    router.push({
+      pathname: '/playlist',
+      params: {
+        id: item.id,
+        title: item.title,
+        color: item.color,
+        icon: item.icon
+      }
+    });
   };
 
   const getGreeting = () => {

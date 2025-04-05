@@ -3,7 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Dimensions, StatusBar, TouchableWit
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -38,8 +38,34 @@ export default function PlayerScreen() {
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const controlsAnimation = useRef(new Animated.Value(1)).current; // Start visible (1)
   const router = useRouter();
+  const params = useLocalSearchParams();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  // Add a function to handle the back button press
+  const handleBackPress = () => {
+    // Check if we came from a specific source
+    if (params && params.source === 'playlist') {
+      // Navigate back to the playlist screen with the playlist ID and title
+      router.navigate({
+        pathname: '/(tabs)/playlist',
+        params: {
+          id: params.playlistId,
+          title: params.playlistTitle,
+          color: currentTrack?.coverColor || '#FF7B54',
+          icon: currentTrack?.icon || 'music'
+        }
+      });
+    } else {
+      // Default back navigation
+      try {
+        router.back();
+      } catch (error) {
+        console.log('Error navigating back:', error);
+        router.replace('/');
+      }
+    }
+  };
 
   // Register the video reference with the PlayerContext
   // This is critical for the MiniPlayer to control playback from other screens
@@ -379,7 +405,7 @@ const playDirectly = async () => {
           <View style={styles.persistentHeader}>
             <TouchableOpacity 
               style={styles.headerBackButton}
-              onPress={() => router.back()}
+              onPress={handleBackPress}
             >
               <MaterialCommunityIcons name="chevron-down" size={28} color="#FFFFFF" />
             </TouchableOpacity>
@@ -563,7 +589,7 @@ const playDirectly = async () => {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <MaterialCommunityIcons name="chevron-down" size={30} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
