@@ -65,6 +65,15 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="reels"
+          options={{
+            title: 'Reels',
+            tabBarIcon: ({ color, size }: { color: string, size: number }) => (
+              <MaterialCommunityIcons name="video" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="search"
           options={{
             title: 'Discover',
