@@ -51,12 +51,15 @@ export default function PlaylistScreen() {
       title: 'chance with you',
       artist: 'mehro',
       duration: 210,
+      mediaSource: require('@/assets/audio/Believe.mp4'),
     },
     {
       id: '3',
       title: 'Nirvana',
       artist: 'Sam Smith',
       duration: 195,
+      mediaSource: require('@/assets/audio/Believe.mp4'),
+
     }
   ]);
   
@@ -214,7 +217,12 @@ export default function PlaylistScreen() {
         
         {/* Tracks list */}
         <View style={styles.tracksContainer}>
-          {playlistTracks.map((track, index) => renderTrackItem({ item: track, index }))}
+          <FlatList
+            data={playlistTracks}
+            keyExtractor={(item) => item.id}
+            renderItem={renderTrackItem}
+            scrollEnabled={false}
+          />
         </View>
       </ScrollView>
       

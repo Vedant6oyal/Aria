@@ -67,6 +67,16 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="playlist"
+          options={{
+            title: 'Playlist',
+            tabBarIcon: ({ color, size }: { color: string, size: number }) => (
+              <MaterialCommunityIcons name="playlist-music" size={size} color={color} />
+            ),
+            href: null, // Hide from tab bar, accessed through navigation
+          }}
+        />
+        <Tabs.Screen
           name="library"
           options={{
             title: 'Library',

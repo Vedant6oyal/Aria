@@ -139,10 +139,31 @@ export default function PlayerScreen() {
 
   // Set a sample track if none is selected
   useEffect(() => {
+    let isMounted = true;
+    
     if (!currentTrack) {
       // Set the first sample track as the current track
       setCurrentTrack(sampleTracks[0]);
+    } else {
+      console.log("Current track loaded:", currentTrack.title);
+      console.log("Media source:", currentTrack.mediaSource);
+      
+      // Only try to reload the video if the ref exists and component is mounted
+      if (videoRef.current && isMounted) {
+        try {
+          // Instead of unloading/reloading which can cause errors,
+          // use the key prop on the Video component to force a remount
+          setPlaybackInstance(videoRef.current);
+        } catch (err) {
+          console.error("Error setting up video:", err);
+        }
+      }
     }
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [currentTrack, setCurrentTrack]);
 
   // Set initial timer for controls
@@ -391,14 +412,28 @@ const playDirectly = async () => {
           {/* Video Player */}
           <Video
             ref={videoRef}
+            key={`video-${currentTrack.id}`} // Use track ID as key to force remount
             source={currentTrack.mediaSource}
             style={styles.fullScreenVideo}
             resizeMode={ResizeMode.COVER}
-            shouldPlay={false}
+            shouldPlay={true} // Always start playing when loaded
             isLooping
             onPlaybackStatusUpdate={onPlaybackStatusUpdate}
             useNativeControls={false}
             volume={volume}
+            onLoad={() => {
+              console.log(`Loaded video for track: ${currentTrack.title}`);
+              // Force play when loaded
+              if (videoRef.current) {
+                videoRef.current.playAsync().then(() => {
+                  setIsPlaying(true);
+                  console.log("Started playing automatically");
+                }).catch(err => console.error("Error auto-playing:", err));
+              }
+            }}
+            onError={(error) => {
+              console.error(`Error loading media for track ${currentTrack.title}:`, error);
+            }}
           />
           
           {/* Persistent header at the top (always visible) */}
