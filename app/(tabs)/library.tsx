@@ -1,51 +1,138 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, FlatList, Image } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, View, TouchableOpacity, FlatList, StatusBar, Platform, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Define icon types to avoid TypeScript errors
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-// Mock data for the library with sunset-inspired color scheme
-const userPlaylists = [
-  { id: '1', title: 'Positive Vibes', tracks: 24, icon: 'playlist-music' as IconName, color: '#FF7B54' },
-  { id: '2', title: 'Morning Motivation', tracks: 18, icon: 'playlist-music' as IconName, color: '#8E92EF' },
-  { id: '3', title: 'Sunset Chill', tracks: 32, icon: 'playlist-music' as IconName, color: '#00CCB4' },
-  { id: '4', title: 'Happy Beats', tracks: 15, icon: 'playlist-music' as IconName, color: '#36D97F' },
-];
+// Define types for the song data
+interface SongItem {
+  id: string;
+  title: string;
+  artist: string;
+  plays: number;
+  likes: number;
+  comments: number;
+  version: string | null;
+  color: string;
+}
 
-const recentAlbums = [
-  { id: '1', title: 'Positive Energy', artist: 'Good Vibes', tracks: 12, icon: 'album' as IconName, color: '#FF7B54' },
-  { id: '2', title: 'Sunset Dreams', artist: 'Chill Masters', tracks: 10, icon: 'album' as IconName, color: '#8E92EF' },
-  { id: '3', title: 'Morning Light', artist: 'Dawn Chorus', tracks: 8, icon: 'album' as IconName, color: '#00CCB4' },
-  { id: '4', title: 'Happy Days', artist: 'Positive Minds', tracks: 14, icon: 'album' as IconName, color: '#36D97F' },
-];
-
-const followedArtists = [
-  { id: '1', name: 'Positive Vibes', followers: '2.4M', icon: 'account-music' as IconName, color: '#FF7B54' },
-  { id: '2', name: 'Good Energy', followers: '1.8M', icon: 'account-music' as IconName, color: '#8E92EF' },
-  { id: '3', name: 'Happy Beats', followers: '950K', icon: 'account-music' as IconName, color: '#00CCB4' },
-  { id: '4', name: 'Sunset Sounds', followers: '1.2M', icon: 'account-music' as IconName, color: '#36D97F' },
-];
-
-// Library tabs
-const tabs = [
-  { id: 'playlists', title: 'Playlists' },
-  { id: 'albums', title: 'Albums' },
-  { id: 'artists', title: 'Artists' },
+// Mock data for liked songs
+const likedSongs: SongItem[] = [
+  { 
+    id: '1', 
+    title: 'Affirmation', 
+    artist: 'Affirmation', 
+    plays: 3, 
+    likes: 1, 
+    comments: 0,
+    version: null,
+    color: '#FF7B54',
+  },
+  { 
+    id: '2', 
+    title: 'Thank you', 
+    artist: '', 
+    plays: 14, 
+    likes: 1, 
+    comments: 0,
+    version: 'v4',
+    color: '#FFB6C1',
+  },
+  { 
+    id: '3', 
+    title: 'You Are Light', 
+    artist: '', 
+    plays: 5, 
+    likes: 1, 
+    comments: 0,
+    version: null,
+    color: '#8E92EF',
+  },
+  { 
+    id: '4', 
+    title: 'Whispers Of The Universe', 
+    artist: '', 
+    plays: 4, 
+    likes: 1, 
+    comments: 0,
+    version: null,
+    color: '#00CCB4',
+  },
+  { 
+    id: '5', 
+    title: 'Untitled', 
+    artist: 'folk-pop, soft rock', 
+    plays: 7, 
+    likes: 1, 
+    comments: 0,
+    version: null,
+    color: '#FFA07A',
+  },
+  { 
+    id: '6', 
+    title: 'Everything going to be alright', 
+    artist: '', 
+    plays: 3, 
+    likes: 1, 
+    comments: 0,
+    version: 'v4',
+    color: '#36D97F',
+  },
+  { 
+    id: '7', 
+    title: 'Everything going to be alright', 
+    artist: '', 
+    plays: 3, 
+    likes: 1, 
+    comments: 0,
+    version: 'v4',
+    color: '#87CEEB',
+  },
+  { 
+    id: '8', 
+    title: 'Thank you goddd', 
+    artist: '', 
+    plays: 2, 
+    likes: 1, 
+    comments: 0,
+    version: 'v4',
+    color: '#FFD700',
+  },
 ];
 
 export default function LibraryScreen() {
-  const [activeTab, setActiveTab] = useState('playlists');
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [scrollOffset, setScrollOffset] = useState(0);
+  
+  // Animation values for header
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 60, 90],
+    outputRange: [1, 0.3, 0],
+    extrapolate: 'clamp',
+  });
+  
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [0, -50],
+    extrapolate: 'clamp',
+  });
+  
+  const subHeaderOpacity = scrollY.interpolate({
+    inputRange: [0, 40, 70],
+    outputRange: [1, 0.7, 0],
+    extrapolate: 'clamp',
+  });
 
   // Helper function to darken or lighten a color
   const shadeColor = (color: string, percent: number) => {
@@ -72,187 +159,170 @@ export default function LibraryScreen() {
     return "#" + RR + GG + BB;
   };
 
-  const renderPlaylistItem = ({ item }: { item: any }) => {
+  const renderSongItem = ({ item, index }: { item: SongItem, index: number }) => {
+    // Calculate a slight delay for each item to create a staggered animation effect
+    const animationDelay = index * 100;
+    
     return (
-      <TouchableOpacity 
-        style={styles.libraryItem}
-        onPress={() => router.push('/player')}
+      <Animated.View
+        style={{
+          opacity: 1,
+          transform: [{ 
+            translateY: 0
+          }]
+        }}
       >
-        <LinearGradient
-          colors={[item.color, shadeColor(item.color, 20)]}
-          style={styles.itemCover}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <TouchableOpacity 
+          style={styles.songItem}
+          onPress={() => router.push('/player')}
+          activeOpacity={0.7}
         >
-          <MaterialCommunityIcons name={item.icon} size={32} color="#FFFFFF" />
-        </LinearGradient>
-        <View style={styles.itemInfo}>
-          <ThemedText style={styles.itemTitle}>{item.title}</ThemedText>
-          <ThemedText style={styles.itemSubtitle}>{item.tracks} tracks</ThemedText>
-        </View>
-        <MaterialCommunityIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
-      </TouchableOpacity>
-    );
-  };
-
-  const renderAlbumItem = ({ item }: { item: any }) => {
-    return (
-      <TouchableOpacity 
-        style={styles.libraryItem}
-        onPress={() => router.push('/player')}
-      >
-        <LinearGradient
-          colors={[item.color, shadeColor(item.color, 20)]}
-          style={styles.itemCover}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <MaterialCommunityIcons name={item.icon} size={32} color="#FFFFFF" />
-        </LinearGradient>
-        <View style={styles.itemInfo}>
-          <ThemedText style={styles.itemTitle}>{item.title}</ThemedText>
-          <ThemedText style={styles.itemSubtitle}>{item.artist} • {item.tracks} tracks</ThemedText>
-        </View>
-        <MaterialCommunityIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
-      </TouchableOpacity>
-    );
-  };
-
-  const renderArtistItem = ({ item }: { item: any }) => {
-    return (
-      <TouchableOpacity 
-        style={styles.libraryItem}
-        onPress={() => router.push('/player')}
-      >
-        <View style={styles.artistCircle}>
           <LinearGradient
-            colors={[item.color, shadeColor(item.color, 20)]}
-            style={styles.artistCover}
+            colors={[item.color, shadeColor(item.color, -20)]}
+            style={styles.songArtwork}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <MaterialCommunityIcons name={item.icon} size={32} color="#FFFFFF" />
+            <MaterialCommunityIcons name="music" size={20} color="#FFFFFF" />
           </LinearGradient>
-        </View>
-        <View style={styles.itemInfo}>
-          <ThemedText style={styles.itemTitle}>{item.name}</ThemedText>
-          <ThemedText style={styles.itemSubtitle}>{item.followers} followers</ThemedText>
-        </View>
-        <MaterialCommunityIcons name="chevron-right" size={24} color={colors.tabIconDefault} />
-      </TouchableOpacity>
+          
+          <View style={styles.songInfo}>
+            <View>
+              <ThemedText style={styles.songTitle}>
+                {item.title}
+                {item.version && (
+                  <View style={styles.versionBadge}>
+                    <ThemedText style={styles.versionText}>{item.version}</ThemedText>
+                  </View>
+                )}
+              </ThemedText>
+              {item.artist ? (
+                <ThemedText style={styles.songArtist}>{item.artist}</ThemedText>
+              ) : null}
+            </View>
+            
+            <View style={styles.songStats}>
+              <View style={styles.statItem}>
+                <MaterialCommunityIcons name="play" size={14} color={colors.text} style={styles.statIcon} />
+                <ThemedText style={styles.statText}>{item.plays}</ThemedText>
+              </View>
+              
+              <View style={styles.statItem}>
+                <MaterialCommunityIcons name="thumb-up" size={14} color={colors.text} style={styles.statIcon} />
+                <ThemedText style={styles.statText}>{item.likes}</ThemedText>
+              </View>
+              
+              <View style={styles.statItem}>
+                <MaterialCommunityIcons name="comment" size={14} color={colors.text} style={styles.statIcon} />
+                <ThemedText style={styles.statText}>{item.comments}</ThemedText>
+              </View>
+              
+              <MaterialCommunityIcons name="web" size={14} color={colors.text} style={styles.webIcon} />
+            </View>
+          </View>
+          
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={styles.likeButton}>
+              <MaterialCommunityIcons 
+                name="thumb-up" 
+                size={22} 
+                color={colors.tint} 
+              />
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.menuButton}>
+              <MaterialCommunityIcons name="dots-vertical" size={22} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
+  };
+
+  // Render header component
+  const renderHeader = () => (
+    <View style={styles.listHeader}>
+      <View style={styles.statsContainer}>
+        <View style={styles.statBox}>
+          <ThemedText style={styles.statCount}>42</ThemedText>
+          <ThemedText style={styles.statLabel}>Songs</ThemedText>
+        </View>
+        <View style={styles.statBox}>
+          <ThemedText style={styles.statCount}>18</ThemedText>
+          <ThemedText style={styles.statLabel}>Artists</ThemedText>
+        </View>
+        <View style={styles.statBox}>
+          <ThemedText style={styles.statCount}>3.2</ThemedText>
+          <ThemedText style={styles.statLabel}>Hours</ThemedText>
+        </View>
+      </View>
+      
+      <View style={styles.filterContainer}>
+        <TouchableOpacity style={styles.filterButton}>
+          <MaterialCommunityIcons name="sort" size={16} color={colors.text} />
+          <ThemedText style={styles.filterText}>Recent</ThemedText>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.filterButton}>
+          <MaterialCommunityIcons name="filter-variant" size={16} color={colors.text} />
+          <ThemedText style={styles.filterText}>Filter</ThemedText>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  // Handle scroll event without using native driver
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setScrollOffset(offsetY);
+    scrollY.setValue(offsetY);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={[colors.gradient[0], colors.gradient[1]]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0.6 }}
-        style={styles.header}
+      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
+      
+      {/* Animated Header */}
+      <Animated.View 
+        style={[
+          styles.header,
+          {
+            opacity: headerOpacity,
+            transform: [{ translateY: headerTranslateY }]
+          }
+        ]}
       >
-        <ThemedText style={styles.headerTitle}>Your Library</ThemedText>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialCommunityIcons name="magnify" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <MaterialCommunityIcons name="plus" size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      <View style={styles.tabContainer}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab.id}
-            style={[
-              styles.tab,
-              activeTab === tab.id && { backgroundColor: colors.tint }
-            ]}
-            onPress={() => setActiveTab(tab.id)}
-          >
-            <ThemedText
-              style={[
-                styles.tabText,
-                activeTab === tab.id && { color: '#FFFFFF' }
-              ]}
-            >
-              {tab.title}
-            </ThemedText>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.content}>
-        {activeTab === 'playlists' && (
-          <>
-            <View style={styles.sectionHeader}>
-              <ThemedText style={styles.sectionTitle}>Your Playlists</ThemedText>
-              <TouchableOpacity>
-                <ThemedText style={[styles.sectionAction, { color: colors.tint }]}>See All</ThemedText>
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={userPlaylists}
-              renderItem={renderPlaylistItem}
-              keyExtractor={item => item.id}
-              scrollEnabled={false}
+        <LinearGradient
+          colors={[colors.tint, shadeColor(colors.tint, -20)]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <View style={styles.headerContent}>
+            <MaterialCommunityIcons 
+              name="music-box-multiple" 
+              size={28} 
+              color="#FFFFFF" 
+              style={styles.headerIcon} 
             />
-          </>
-        )}
-
-        {activeTab === 'albums' && (
-          <>
-            <View style={styles.sectionHeader}>
-              <ThemedText style={styles.sectionTitle}>Recent Albums</ThemedText>
-              <TouchableOpacity>
-                <ThemedText style={[styles.sectionAction, { color: colors.tint }]}>See All</ThemedText>
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={recentAlbums}
-              renderItem={renderAlbumItem}
-              keyExtractor={item => item.id}
-              scrollEnabled={false}
-            />
-          </>
-        )}
-
-        {activeTab === 'artists' && (
-          <>
-            <View style={styles.sectionHeader}>
-              <ThemedText style={styles.sectionTitle}>Artists You Follow</ThemedText>
-              <TouchableOpacity>
-                <ThemedText style={[styles.sectionAction, { color: colors.tint }]}>See All</ThemedText>
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={followedArtists}
-              renderItem={renderArtistItem}
-              keyExtractor={item => item.id}
-              scrollEnabled={false}
-            />
-          </>
-        )}
-      </View>
-
-      {/* Music Visualizer at the bottom */}
-      <View style={styles.visualizerContainer}>
-        {Colors.common.musicVisualizer.map((color, index) => (
-          <View 
-            key={index} 
-            style={[
-              styles.visualizerBar, 
-              { 
-                backgroundColor: color,
-                height: 20 + Math.random() * 40,
-                marginLeft: index > 0 ? 4 : 0
-              }
-            ]} 
-          />
-        ))}
-      </View>
+            <ThemedText style={styles.mainHeaderTitle}>Your Library</ThemedText>
+            <Animated.View style={{ opacity: subHeaderOpacity }}>
+              <ThemedText style={styles.subHeaderTitle}>Liked Songs</ThemedText>
+            </Animated.View>
+          </View>
+        </LinearGradient>
+      </Animated.View>
+      
+      <FlatList
+        data={likedSongs}
+        renderItem={renderSongItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={renderHeader}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      />
     </View>
   );
 }
@@ -262,110 +332,156 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    height: Platform.OS === 'ios' ? 140 : 120,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  headerIcons: {
-    flexDirection: 'row',
-  },
-  iconButton: {
-    marginLeft: 16,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-  },
-  tabText: {
-    fontWeight: '600',
-  },
-  content: {
+  headerGradient: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  headerContent: {
     alignItems: 'center',
-    marginBottom: 16,
+    paddingHorizontal: 20,
   },
-  sectionTitle: {
+  headerIcon: {
+    marginBottom: 8,
+  },
+  mainHeaderTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  subHeaderTitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 2,
+  },
+  listContent: {
+    paddingTop: Platform.OS === 'ios' ? 140 : 120,
+    paddingBottom: 100, // Extra space for the tab bar and mini player
+  },
+  listHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+    paddingVertical: 10,
+  },
+  statBox: {
+    alignItems: 'center',
+  },
+  statCount: {
     fontSize: 20,
     fontWeight: 'bold',
   },
-  sectionAction: {
-    fontSize: 14,
-    fontWeight: '600',
+  statLabel: {
+    fontSize: 12,
+    opacity: 0.7,
+    marginTop: 4,
   },
-  libraryItem: {
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  filterText: {
+    fontSize: 14,
+    marginLeft: 6,
+  },
+  songItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
-  itemCover: {
-    width: 56,
-    height: 56,
-    borderRadius: 8,
+  songArtwork: {
+    width: 44,
+    height: 44,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 3,
+    elevation: 2,
   },
-  itemInfo: {
+  songInfo: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 12,
+    justifyContent: 'space-between',
   },
-  itemTitle: {
-    fontWeight: '600',
+  songTitle: {
     fontSize: 16,
-    marginBottom: 4,
+    fontWeight: '600',
+    marginBottom: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  itemSubtitle: {
+  versionBadge: {
+    backgroundColor: '#FFD93D', // Use the warning color from common
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  versionText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  songArtist: {
     fontSize: 14,
     opacity: 0.7,
   },
-  artistCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
+  songStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
-  artistCover: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  statIcon: {
+    marginRight: 4,
+    opacity: 0.7,
+  },
+  statText: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  webIcon: {
+    opacity: 0.7,
+  },
+  actionButtons: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  visualizerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    height: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 16,
+  likeButton: {
+    padding: 8,
   },
-  visualizerBar: {
-    width: 6,
-    borderRadius: 3,
+  menuButton: {
+    padding: 8,
   },
 });

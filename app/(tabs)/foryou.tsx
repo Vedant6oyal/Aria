@@ -243,6 +243,12 @@ export default function ForYouScreen() {
     </TouchableOpacity>
   );
 
+  // Add a handler for the Gratitude Quiz button
+  const handleGratitudeQuiz = () => {
+    console.log('Opening Gratitude Quiz');
+    // Future implementation: Navigate to gratitude quiz screen
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" />
@@ -278,7 +284,22 @@ export default function ForYouScreen() {
         </LinearGradient>
       </Animated.View>
       
-      {/* Track List */}
+      {/* Gratitude Quiz Button */}
+      <TouchableOpacity 
+        style={styles.gratitudeButton}
+        onPress={handleGratitudeQuiz}
+      >
+        <LinearGradient
+          colors={['#2A2A2A', '#1A1A1A']}
+          style={styles.gratitudeButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <ThemedText style={styles.gratitudeButtonText}>Gratitude Quiz</ThemedText>
+        </LinearGradient>
+      </TouchableOpacity>
+      
+       {/* Track List */}
       <FlatList
         data={forYouTracks}
         renderItem={renderTrackItem}
@@ -357,6 +378,33 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
     letterSpacing: 2,
     textAlign: 'center',
+  },
+  gratitudeButton: {
+    position: 'relative',
+    top: 125,
+    left: 16,
+    elevation: 5,
+    zIndex: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    borderRadius: 20,
+    overflow: 'hidden',
+    width: 130,
+  },
+  gratitudeButtonGradient: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  gratitudeButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   listContent: {
     paddingTop: 130, // Increased padding to prevent overlap with header
