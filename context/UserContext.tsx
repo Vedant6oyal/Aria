@@ -3,7 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserData {
   name: string;
-  age: number | null;
+  ageRange: string;
+  musicPreference: string;
+  gender: string;
 }
 
 interface UserContextType {

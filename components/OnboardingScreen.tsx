@@ -11,11 +11,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
+  Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
 
 interface OnboardingScreenProps {
   onComplete: (userData: UserData) => void;
@@ -40,7 +42,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   });
 
   const handleNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
     } else {
       handleComplete();
@@ -55,7 +57,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
   // Skip only skips the current question/step
   const handleSkip = () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       // Move to the next step without saving data for the current step
       setCurrentStep(currentStep + 1);
     } else {
@@ -72,6 +74,33 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
       onComplete(userData);
     } catch (error) {
       console.error('Error saving onboarding data:', error);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      
+      // If we don't have permission yet, ask for it
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      
+      if (finalStatus !== 'granted') {
+        // Permission was not granted, but we'll continue with onboarding
+        console.log('Notification permission denied');
+      }
+      
+      // Save notification preference to AsyncStorage
+      await AsyncStorage.setItem('ARIA_NOTIFICATIONS_ENABLED', finalStatus === 'granted' ? 'true' : 'false');
+      
+      // Complete onboarding regardless of notification permission
+      handleComplete();
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      handleComplete(); // Still complete onboarding even if there's an error
     }
   };
 
@@ -183,11 +212,39 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             {renderOptionButton('Prefer not to say', 'not-specified', 'gender')}
             
             {userData.gender && (
-              <TouchableOpacity style={styles.continueButton} onPress={handleComplete}>
-                <Text style={styles.continueText}>Get Started</Text>
+              <TouchableOpacity style={styles.continueButton} onPress={handleNext}>
+                <Text style={styles.continueText}>Continue</Text>
               </TouchableOpacity>
             )}
           </>
+        );
+
+      case 5:
+        return (
+          <View style={styles.notificationContainer}>
+            <Ionicons name="notifications" size={60} color="#344054" style={styles.notificationIcon} />
+            
+            <Text style={styles.questionText}>Get Personalised Song For You Everyday</Text>
+            <Text style={styles.subtitleText}>
+              We advise you to listen to this everyday in the morning for best effect
+            </Text>
+            
+            <View style={styles.spacer} />
+            
+            <TouchableOpacity 
+              style={styles.allowButton} 
+              onPress={requestNotificationPermission}
+            >
+              <Text style={styles.allowButtonText}>Allow</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.skipNotificationButton} 
+              onPress={handleComplete}
+            >
+              <Text style={styles.skipNotificationText}>Not now</Text>
+            </TouchableOpacity>
+          </View>
         );
       
       default:
@@ -197,8 +254,12 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
   // Dynamically show "Skip" text based on whether it's the last step
   const renderSkipText = () => {
+    if (currentStep === 5) return "Skip";
     return currentStep < 4 ? "Skip" : "Skip All";
   };
+
+  // Don't show back button on notification screen
+  const showBackButton = currentStep > 1 && currentStep !== 5;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -210,20 +271,22 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           <TouchableOpacity 
             style={styles.backButton} 
             onPress={handleBack}
-            disabled={currentStep === 1}
+            disabled={!showBackButton}
           >
-            {currentStep > 1 && (
+            {showBackButton && (
               <Ionicons name="chevron-back" size={24} color="#344054" />
             )}
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-            <Text style={styles.skipText}>{renderSkipText()}</Text>
-          </TouchableOpacity>
+          {currentStep !== 5 && (
+            <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+              <Text style={styles.skipText}>{renderSkipText()}</Text>
+            </TouchableOpacity>
+          )}
         </View>
         
         <View style={styles.progressBar}>
-          {[1, 2, 3, 4].map(step => (
+          {[1, 2, 3, 4, 5].map(step => (
             <View 
               key={step} 
               style={[
@@ -350,7 +413,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#344054',
     borderRadius: 12,
     padding: 16,
-
+    alignItems: 'center',
     marginTop: 16,
   },
   disabledButton: {
@@ -360,5 +423,37 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  notificationContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  notificationIcon: {
+    marginBottom: 24,
+  },
+  spacer: {
+    flex: 1,
+    minHeight: 40,
+  },
+  allowButton: {
+    backgroundColor: '#344054',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 12,
+  },
+  allowButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  skipNotificationButton: {
+    padding: 12,
+  },
+  skipNotificationText: {
+    color: '#667085',
+    fontSize: 14,
   },
 });
