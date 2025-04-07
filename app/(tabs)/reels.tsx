@@ -321,6 +321,26 @@ export default function ReelsScreen() {
     return num.toString();
   };
 
+  // Format time in mm:ss format
+  const formatTime = (milliseconds: number) => {
+    if (!milliseconds) return "0:00";
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Track video duration and position for the current video
+  const [currentVideoDuration, setCurrentVideoDuration] = useState(0);
+  const [currentPosition, setCurrentPosition] = useState(0);
+  
+  // Update current position when progress changes
+  useEffect(() => {
+    if (currentVideoDuration > 0) {
+      setCurrentPosition(progress * currentVideoDuration);
+    }
+  }, [progress, currentVideoDuration]);
+
   // Handle like animation
   const animateLike = (index: number) => {
     // Update likes count
@@ -371,10 +391,14 @@ export default function ReelsScreen() {
 
   // Handle video playback status updates
   const onPlaybackStatusUpdate = (status: any, index: number) => {
-    if (!isDraggingProgress && status.isLoaded && index === activeVideoIndex && status.durationMillis) {
-      const progress = status.positionMillis / status.durationMillis;
-      setProgress(progress);
-      progressAnim.setValue(progress);
+    if (status.isLoaded && index === activeVideoIndex) {
+      if (status.durationMillis && status.durationMillis !== currentVideoDuration) {
+        setCurrentVideoDuration(status.durationMillis);
+      }
+      if (!isDraggingProgress) {
+        setProgress(status.positionMillis / status.durationMillis);
+        setCurrentPosition(status.positionMillis);
+      }
     }
   };
 
@@ -422,15 +446,25 @@ export default function ReelsScreen() {
   // Bottom info section
   const infoSection = (item: VideoReel) => (
     <View style={styles.infoContainer}>
-      <View style={styles.songInfoContainer}>
-        <ThemedText style={styles.songName} numberOfLines={1}>{item.title} · {item.artist}</ThemedText>
+      {/* Album art and song info */}
+      <View style={styles.songMainInfoContainer}>
+        <View style={styles.albumArtContainer}>
+          <Image 
+            source={{ uri: item.artwork }} 
+            style={styles.albumArt}
+          />
+        </View>
+        <View style={styles.songDetailsContainer}>
+          <ThemedText style={styles.songName} numberOfLines={1}>{item.title}</ThemedText>
+          <Text style={styles.artistName} numberOfLines={1}>{item.artist}</Text>
+        </View>
       </View>
       
       {/* Enhanced progress bar */}
       <View style={styles.progressBarContainer}>
         <View style={styles.progressTimeContainer}>
-          <Text style={styles.progressTime}>0:00</Text>
-          <Text style={styles.progressTime}>3:45</Text>
+          <Text style={styles.progressTime}>{formatTime(currentPosition)}</Text>
+          <Text style={styles.progressTime}>{formatTime(currentVideoDuration)}</Text>
         </View>
         <Slider
           style={styles.progressSlider}
@@ -465,8 +499,6 @@ export default function ReelsScreen() {
           maximumTrackTintColor="rgba(255, 255, 255, 0.15)"
         />
       </View>
-      
-      
     </View>
   );
 
@@ -588,25 +620,66 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     left: 10,
-    right: 80,
+    right: 10,
     zIndex: 2,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 15,
-    padding: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(10px)',
   },
-  songInfoContainer: {
+  songMainInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  albumArtContainer: {
+    height: 50,
+    width: 50,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginRight: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  albumArt: {
+    height: '100%',
+    width: '100%',
+  },
+  songDetailsContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   songName: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
-    flex: 1,
+    marginBottom: 4,
+  },
+  artistName: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    fontWeight: '500',
   },
   progressBarContainer: {
-    marginVertical: 8,
+    marginVertical: 4,
     paddingHorizontal: 2,
   },
   progressTimeContainer: {
@@ -623,7 +696,7 @@ const styles = StyleSheet.create({
   progressSlider: {
     width: '100%',
     height: 24,
-    marginTop: -8, // Adjust vertical positioning
+    marginTop: -10,
   },
   progressTrack: {
     height: 3,
@@ -634,7 +707,7 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     backgroundColor: '#FF5757',
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -642,6 +715,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    borderWidth: 2,
+    borderColor: 'white',
   },
   tagsContainer: {
     flexDirection: 'row',
