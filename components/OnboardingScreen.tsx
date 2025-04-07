@@ -12,7 +12,8 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  Alert
+  Alert,
+  Linking
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -40,6 +41,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     musicPreference: '',
     gender: ''
   });
+  const [notificationDenied, setNotificationDenied] = useState(false);
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -77,31 +79,44 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     }
   };
 
-  const requestNotificationPermission = async () => {
+  const openAppSettings = async () => {
     try {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      
-      // If we don't have permission yet, ask for it
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      
-      if (finalStatus !== 'granted') {
-        // Permission was not granted, but we'll continue with onboarding
-        console.log('Notification permission denied');
-      }
-      
-      // Save notification preference to AsyncStorage
-      await AsyncStorage.setItem('ARIA_NOTIFICATIONS_ENABLED', finalStatus === 'granted' ? 'true' : 'false');
-      
-      // Complete onboarding regardless of notification permission
-      handleComplete();
+      await Linking.openSettings();
+      // We'll still complete onboarding after they've seen the settings prompt
+      setTimeout(() => {
+        handleComplete();
+      }, 500);
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
-      handleComplete(); // Still complete onboarding even if there's an error
+      console.error('Error opening settings:', error);
+      handleComplete();
     }
+  };
+
+  const requestNotificationPermission = async () => {
+    // Use Alert to simulate the notification permission dialog since Expo Go has limitations
+    Alert.alert(
+      '"Aria" Would Like to Send You Notifications',
+      'Notifications may include alerts, sounds, and icon badges.',
+      [
+        {
+          text: "Don't Allow",
+          style: 'cancel',
+          onPress: () => {
+            console.log('Notification permission denied (simulated)');
+            setNotificationDenied(true);
+          }
+        },
+        {
+          text: 'Allow',
+          onPress: async () => {
+            console.log('Notification permission granted (simulated)');
+            // Save the notification preference
+            await AsyncStorage.setItem('ARIA_NOTIFICATIONS_ENABLED', 'true');
+            handleComplete();
+          }
+        }
+      ]
+    );
   };
 
   const updateUserData = (key: keyof UserData, value: string) => {
@@ -126,6 +141,11 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   };
 
   const renderStep = () => {
+    // If notification permission was denied and we're on step 5, show the follow-up screen
+    if (currentStep === 5 && notificationDenied) {
+      return renderNotificationFollowUp();
+    }
+
     switch (currentStep) {
       case 1:
         return (
@@ -183,7 +203,9 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         return (
           <>
             <Text style={styles.questionText}>What music do you listen to most?</Text>
-            <Text style={styles.subtitleText}>This will help us personalize your recommendations</Text>
+            <Text style={styles.subtitleText}>
+              This will help us personalize your recommendations
+            </Text>
             
             {renderOptionButton('Pop', 'pop', 'musicPreference')}
             {renderOptionButton('Rock', 'rock', 'musicPreference')}
@@ -240,7 +262,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             
             <TouchableOpacity 
               style={styles.skipNotificationButton} 
-              onPress={handleComplete}
+              onPress={() => setNotificationDenied(true)}
             >
               <Text style={styles.skipNotificationText}>Not now</Text>
             </TouchableOpacity>
@@ -252,13 +274,49 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     }
   };
 
+  // Render the follow-up screen when notification permission is denied
+  const renderNotificationFollowUp = () => {
+    return (
+      <View style={styles.notificationContainer}>
+        <View style={styles.illustrationContainer}>
+          <Image
+            source={require('../assets/images/bell-hand.png')}
+            style={styles.bellHandImage}
+            resizeMode="contain"
+          />
+        </View>
+        
+        <Text style={styles.questionText}>Aria works better with reminders</Text>
+        <Text style={styles.subtitleText}>
+          Open settings to allow notifications, it'll have a big impact in your music experience
+        </Text>
+        
+        <View style={styles.spacer} />
+        
+        <TouchableOpacity 
+          style={styles.allowButton} 
+          onPress={openAppSettings}
+        >
+          <Text style={styles.allowButtonText}>Go to settings</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.skipNotificationButton} 
+          onPress={handleComplete}
+        >
+          <Text style={styles.skipNotificationText}>I'm not ready yet</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   // Dynamically show "Skip" text based on whether it's the last step
   const renderSkipText = () => {
     if (currentStep === 5) return "Skip";
     return currentStep < 4 ? "Skip" : "Skip All";
   };
 
-  // Don't show back button on notification screen
+  // Don't show back button on notification screens
   const showBackButton = currentStep > 1 && currentStep !== 5;
 
   return (
@@ -456,4 +514,14 @@ const styles = StyleSheet.create({
     color: '#667085',
     fontSize: 14,
   },
+  illustrationContainer: {
+    marginBottom: 30,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bellHandImage: {
+    width: 120,
+    height: 120,
+  }
 });

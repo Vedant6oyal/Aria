@@ -423,19 +423,50 @@ export default function ReelsScreen() {
   const infoSection = (item: VideoReel) => (
     <View style={styles.infoContainer}>
       <View style={styles.songInfoContainer}>
-        <MaterialCommunityIcons name="music-note" size={20} color="#FFFFFF" />
         <ThemedText style={styles.songName} numberOfLines={1}>{item.title} · {item.artist}</ThemedText>
       </View>
       
-      <ThemedText style={styles.description} numberOfLines={2}>{item.description}</ThemedText>
-      
-      <View style={styles.tagsContainer}>
-        {item.tags?.map((tag, tagIndex) => (
-          <TouchableOpacity key={tagIndex} style={styles.tag}>
-            <ThemedText style={styles.tagText}>#{tag}</ThemedText>
-          </TouchableOpacity>
-        ))}
+      {/* Enhanced progress bar */}
+      <View style={styles.progressBarContainer}>
+        <View style={styles.progressTimeContainer}>
+          <Text style={styles.progressTime}>0:00</Text>
+          <Text style={styles.progressTime}>3:45</Text>
+        </View>
+        <Slider
+          style={styles.progressSlider}
+          value={progress}
+          onValueChange={(value) => {
+            setProgress(value);
+            progressAnim.setValue(value);
+          }}
+          onSlidingStart={() => {
+            setIsDraggingProgress(true);
+            const videoRef = videoRefs.current[reels[activeVideoIndex].id];
+            if (videoRef) {
+              videoRef.pauseAsync();
+            }
+          }}
+          onSlidingComplete={(value) => {
+            const videoRef = videoRefs.current[reels[activeVideoIndex].id];
+            if (videoRef) {
+              videoRef.getStatusAsync().then((status: any) => {
+                if (status.isLoaded && status.durationMillis) {
+                  const newPositionMillis = value * status.durationMillis;
+                  videoRef.setPositionAsync(newPositionMillis);
+                  videoRef.playAsync();
+                }
+              });
+            }
+            setIsDraggingProgress(false);
+          }}
+          minimumValue={0}
+          maximumValue={1}
+          minimumTrackTintColor="#FF5757"
+          maximumTrackTintColor="rgba(255, 255, 255, 0.15)"
+        />
       </View>
+      
+      
     </View>
   );
 
@@ -490,20 +521,8 @@ export default function ReelsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: 'black' }]}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      
-      {/* Top navigation elements */}
-      <View style={styles.topNavigation}>
-        <TouchableOpacity>
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
-        <ThemedText style={styles.topTitle}>Reels</ThemedText>
-        <TouchableOpacity>
-          <MaterialCommunityIcons name="camera" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-      
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <FlatList
         ref={flatListRef}
         data={reels}
@@ -517,46 +536,6 @@ export default function ReelsScreen() {
         viewabilityConfig={viewabilityConfig}
         onViewableItemsChanged={onViewableItemsChanged}
       />
-      
-      {/* Bottom progress bar */}
-      <View style={styles.progressBarContainer}>
-        <Slider
-          style={styles.progressSlider}
-          value={progress}
-          onValueChange={(value) => {
-            // Update progress state and animation
-            setProgress(value);
-            progressAnim.setValue(value);
-          }}
-          onSlidingStart={() => {
-            setIsDraggingProgress(true);
-            // Pause video while dragging
-            const videoRef = videoRefs.current[reels[activeVideoIndex].id];
-            if (videoRef) {
-              videoRef.pauseAsync();
-            }
-          }}
-          onSlidingComplete={(value) => {
-            // Apply progress to video
-            const videoRef = videoRefs.current[reels[activeVideoIndex].id];
-            if (videoRef) {
-              videoRef.getStatusAsync().then((status: any) => {
-                if (status.isLoaded && status.durationMillis) {
-                  const newPositionMillis = value * status.durationMillis;
-                  videoRef.setPositionAsync(newPositionMillis);
-                  videoRef.playAsync();
-                }
-              });
-            }
-            setIsDraggingProgress(false);
-          }}
-          minimumValue={0}
-          maximumValue={1}
-          minimumTrackTintColor="#FF5757"
-          maximumTrackTintColor="rgba(255, 255, 255, 0.5)"
-          thumbTintColor="white"
-        />
-      </View>
     </View>
   );
 }
@@ -611,11 +590,14 @@ const styles = StyleSheet.create({
     left: 10,
     right: 80,
     zIndex: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 15,
+    padding: 15,
   },
   songInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   songName: {
     color: '#FFFFFF',
@@ -623,14 +605,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     flex: 1,
   },
-  description: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    marginBottom: 10,
+  progressBarContainer: {
+    marginVertical: 8,
+    paddingHorizontal: 2,
+  },
+  progressTimeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+    paddingHorizontal: 2,
+  },
+  progressTime: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  progressSlider: {
+    width: '100%',
+    height: 24,
+    marginTop: -8, // Adjust vertical positioning
+  },
+  progressTrack: {
+    height: 3,
+    borderRadius: 1.5,
+  },
+  progressThumb: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF5757',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginTop: 4,
   },
   tag: {
     marginRight: 10,
@@ -653,23 +669,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-  },
-  progressBarContainer: {
-    position: 'absolute',
-    bottom: 100, 
-    left: 10,
-    right: 10,
-    height: 50, 
-    backgroundColor: 'rgba(0, 0, 0, 0.3)', 
-    borderRadius: 25,
-    padding: 5,
-    zIndex: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressSlider: {
-    width: '100%',
-    height: 40,
   },
   topNavigation: {
     flexDirection: 'row',
