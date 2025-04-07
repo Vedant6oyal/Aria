@@ -341,6 +341,25 @@ export default function ReelsScreen() {
     }
   }, [progress, currentVideoDuration]);
 
+  // Track if the current video is playing or paused
+  const [isCurrentVideoPlaying, setIsCurrentVideoPlaying] = useState(true);
+
+  // Toggle play/pause for the current video
+  const togglePlayPause = () => {
+    const videoRef = videoRefs.current[reels[activeVideoIndex].id];
+    if (videoRef) {
+      videoRef.getStatusAsync().then((status: any) => {
+        if (status.isPlaying) {
+          videoRef.pauseAsync();
+          setIsCurrentVideoPlaying(false);
+        } else {
+          videoRef.playAsync();
+          setIsCurrentVideoPlaying(true);
+        }
+      });
+    }
+  };
+
   // Handle like animation
   const animateLike = (index: number) => {
     // Update likes count
@@ -399,6 +418,8 @@ export default function ReelsScreen() {
         setProgress(status.positionMillis / status.durationMillis);
         setCurrentPosition(status.positionMillis);
       }
+      // Update playing state
+      setIsCurrentVideoPlaying(status.isPlaying);
     }
   };
 
@@ -446,21 +467,31 @@ export default function ReelsScreen() {
   // Bottom info section
   const infoSection = (item: VideoReel) => (
     <View style={styles.infoContainer}>
-      {/* Album art and song info */}
+      {/* Song title, artist and play controls in one row */}
       <View style={styles.songMainInfoContainer}>
+        <TouchableOpacity 
+          style={styles.mainPlayPauseButton}
+          onPress={togglePlayPause}
+        >
+          <MaterialCommunityIcons 
+            name={isCurrentVideoPlaying ? "pause-circle" : "play-circle"} 
+            size={36} 
+            color="#FF5757" 
+          />
+        </TouchableOpacity>
+        <View style={styles.songDetailsContainer}>
+          <ThemedText style={styles.songName} numberOfLines={1}>{item.title}</ThemedText>
+          <Text style={styles.artistName} numberOfLines={1}>{item.artist}</Text>
+        </View>
         <View style={styles.albumArtContainer}>
           <Image 
             source={{ uri: item.artwork }} 
             style={styles.albumArt}
           />
         </View>
-        <View style={styles.songDetailsContainer}>
-          <ThemedText style={styles.songName} numberOfLines={1}>{item.title}</ThemedText>
-          <Text style={styles.artistName} numberOfLines={1}>{item.artist}</Text>
-        </View>
       </View>
       
-      {/* Enhanced progress bar */}
+      {/* Progress bar */}
       <View style={styles.progressBarContainer}>
         <View style={styles.progressTimeContainer}>
           <Text style={styles.progressTime}>{formatTime(currentPosition)}</Text>
@@ -488,6 +519,7 @@ export default function ReelsScreen() {
                   const newPositionMillis = value * status.durationMillis;
                   videoRef.setPositionAsync(newPositionMillis);
                   videoRef.playAsync();
+                  setIsCurrentVideoPlaying(true);
                 }
               });
             }
@@ -497,6 +529,8 @@ export default function ReelsScreen() {
           maximumValue={1}
           minimumTrackTintColor="#FF5757"
           maximumTrackTintColor="rgba(255, 255, 255, 0.15)"
+          thumbStyle={styles.progressThumb}
+          trackStyle={styles.progressTrack}
         />
       </View>
     </View>
@@ -623,8 +657,8 @@ const styles = StyleSheet.create({
     right: 10,
     zIndex: 2,
     backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 16,
+    padding: 12,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -635,19 +669,18 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(10px)',
   },
   songMainInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   albumArtContainer: {
-    height: 50,
-    width: 50,
-    borderRadius: 12,
+    height: 42,
+    width: 42,
+    borderRadius: 8,
     overflow: 'hidden',
-    marginRight: 12,
+    marginLeft: 12,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -670,16 +703,20 @@ const styles = StyleSheet.create({
   songName: {
     color: '#FFFFFF',
     fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
+    fontSize: 15,
+    marginBottom: 2,
   },
   artistName: {
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
+  mainPlayPauseButton: {
+    padding: 5,
+    marginRight: 8,
+  },
   progressBarContainer: {
-    marginVertical: 4,
+    marginVertical: 0,
     paddingHorizontal: 2,
   },
   progressTimeContainer: {
@@ -687,16 +724,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
     paddingHorizontal: 2,
+    alignItems: 'center',
   },
   progressTime: {
     color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   progressSlider: {
     width: '100%',
     height: 24,
-    marginTop: -10,
+    marginTop: -8,
   },
   progressTrack: {
     height: 3,
@@ -761,5 +799,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  playPauseButton: {
+    padding: 5,
   },
 });
