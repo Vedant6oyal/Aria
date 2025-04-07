@@ -14,6 +14,7 @@ import { PlayerProvider, sampleTracks } from '@/context/PlayerContext';
 import { UserProvider, useUser } from '@/context/UserContext';
 import CustomSplashScreen from '@/components/SplashScreen';
 import OnboardingScreen from '@/components/OnboardingScreen';
+import { UserData } from '@/components/OnboardingScreen'; // Import the UserData interface
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -33,7 +34,7 @@ function AppContent() {
     setShowCustomSplash(false);
   };
 
-  const handleOnboardingComplete = async (userData: { name: string; age: number | null }) => {
+  const handleOnboardingComplete = async (userData: UserData) => {
     console.log('DEBUG - Onboarding completed with data:', userData);
     await completeOnboarding();
   };
