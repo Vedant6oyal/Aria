@@ -529,8 +529,6 @@ export default function ReelsScreen() {
           maximumValue={1}
           minimumTrackTintColor="#FF5757"
           maximumTrackTintColor="rgba(255, 255, 255, 0.15)"
-          thumbStyle={styles.progressThumb}
-          trackStyle={styles.progressTrack}
         />
       </View>
     </View>
