@@ -10,6 +10,7 @@ import {
   GestureResponderEvent
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useReelsPlayer } from './ReelsPlayerContext';
 
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -34,11 +35,32 @@ export function ReelsMiniPlayer({
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
+  // Access the reels player context
+  const reelsPlayer = useReelsPlayer();
+
   // Handle play/pause button press
   const handlePlayPausePress = (event: GestureResponderEvent) => {
     // Stop propagation to prevent the container's onPress from firing
     event.stopPropagation();
-    onPlayPause(event);
+    
+    // Use the context's toggle function if available, otherwise fallback to props
+    if (reelsPlayer.currentReel) {
+      reelsPlayer.togglePlayPause();
+    } else {
+      onPlayPause(event);
+    }
+  };
+
+  // Determine which play state to use (context or props)
+  const isCurrentlyPlaying = reelsPlayer.currentReel ? reelsPlayer.isPlaying : isPlaying;
+
+  // Handle press on the main content area
+  const handleMainPress = () => {
+    if (reelsPlayer.currentReel) {
+      reelsPlayer.navigateToReels();
+    } else {
+      onPress();
+    }
   };
 
   return (
@@ -46,7 +68,7 @@ export function ReelsMiniPlayer({
       {/* Main content area (clickable to open full reel) */}
       <TouchableOpacity 
         style={styles.mainContent} 
-        onPress={onPress}
+        onPress={handleMainPress}
         activeOpacity={0.7}
       >
         {/* Reel Thumbnail */}
@@ -86,7 +108,7 @@ export function ReelsMiniPlayer({
           activeOpacity={0.6}
         >
           <MaterialCommunityIcons 
-            name={isPlaying ? 'pause' : 'play'} 
+            name={isCurrentlyPlaying ? 'pause' : 'play'} 
             size={22} 
             color="#ffffff" 
           />

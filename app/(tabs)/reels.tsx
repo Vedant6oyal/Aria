@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -24,6 +24,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePlayer, Track } from '@/context/PlayerContext';
+import { useReelsPlayer, Reel as ReelType } from '@/components/ReelsPlayerContext';
 
 // Get screen dimensions for responsive layout
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -42,6 +43,16 @@ export default function ReelsScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
   const { setCurrentTrack, setIsPlaying } = usePlayer();
+
+  // Use our ReelsPlayerContext
+  const { 
+    currentReel, 
+    setCurrentReel, 
+    isPlaying: isReelPlaying, 
+    setIsPlaying: setReelIsPlaying, 
+    togglePlayPause: toggleReelPlayPause,
+    setPlaybackInstance
+  } = useReelsPlayer();
   
   // Ref for FlatList to control scrolling
   const flatListRef = useRef<FlatList>(null);
@@ -283,33 +294,167 @@ export default function ReelsScreen() {
     },
   ]);
 
-  // Reference to video components
-  const videoRefs = useRef<{ [key: string]: Video | null }>({});
+  // Refs for video components
+  const videoRefs = useRef<Record<string, Video>>({});
+  
+  // Config for FlatList viewability
+  const viewabilityConfig = { viewAreaCoveragePercentThreshold: 50 };
+  
+  // State to track if we're transitioning between reels
+  const [isChangingReel, setIsChangingReel] = useState(false);
 
-  // Handle viewability change to play/pause videos
-  const onViewableItemsChanged = useRef(({ viewableItems, changed }: any) => {
-    if (viewableItems.length > 0) {
-      const visibleIndex = viewableItems[0].index;
-      setActiveVideoIndex(visibleIndex);
+  // Handle viewable items change in FlatList
+  const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
+    if (viewableItems && viewableItems.length > 0) {
+      const newIndex = viewableItems[0].index;
       
-      // Pause all videos and play only the visible one
-      Object.keys(videoRefs.current).forEach((key) => {
-        const videoRef = videoRefs.current[key];
-        if (videoRef) {
-          if (key === reels[visibleIndex].id) {
-            videoRef.playAsync();
-          } else {
-            videoRef.pauseAsync();
+      // Only update if the active index has changed
+      if (activeVideoIndex !== newIndex) {
+        console.log(`Changing active reel from index ${activeVideoIndex} to ${newIndex}`);
+        
+        // Set transition flag to prevent UI flickering
+        setIsChangingReel(true);
+        
+        // First pause the current video if it exists
+        if (activeVideoIndex !== -1 && reels[activeVideoIndex]) {
+          const currentVideoRef = videoRefs.current[reels[activeVideoIndex].id];
+          if (currentVideoRef) {
+            try {
+              currentVideoRef.pauseAsync().catch(err => {
+                console.log('Error pausing previous video - ignoring:', err);
+              });
+            } catch (err) {
+              console.log('Error accessing previous video ref - ignoring:', err);
+            }
           }
         }
-      });
+        
+        // Update active index
+        setActiveVideoIndex(newIndex);
+        
+        // Update current reel in context
+        if (reels[newIndex]) {
+          // Convert VideoReel to ReelType for the context
+          const contextReel: ReelType = {
+            id: reels[newIndex].id,
+            title: reels[newIndex].title,
+            creator: reels[newIndex].artist,
+            thumbnailUrl: reels[newIndex].artwork,
+            videoUrl: reels[newIndex]?.mediaSource ? 'video://local' : undefined,
+          };
+          
+          // Update current reel in context and reset play state
+          setCurrentReel(contextReel);
+          setReelIsPlaying(true); // Auto-play when switching reels
+          
+          // Also update the local state to show playing icon immediately
+          setIsCurrentVideoPlaying(true);
+          
+          // Set the active video ref in the ReelsPlayerContext if available
+          const videoRef = videoRefs.current[reels[newIndex].id];
+          if (videoRef) {
+            setTimeout(() => {
+              try {
+                // Update playback instance in context
+                setPlaybackInstance(videoRef);
+                
+                // Make sure the video starts playing
+                videoRef.getStatusAsync().then(status => {
+                  if (status.isLoaded) {
+                    // Always play the new video
+                    videoRef.playAsync().then(() => {
+                      // End transition period after video starts playing
+                      setTimeout(() => {
+                        setIsChangingReel(false);
+                      }, 500);
+                    }).catch(err => {
+                      console.log('Error playing new video - ignoring:', err);
+                      setIsChangingReel(false);
+                    });
+                  } else {
+                    setIsChangingReel(false);
+                  }
+                }).catch(err => {
+                  console.log('Error getting video status when changing reel - ignoring:', err);
+                  setIsChangingReel(false);
+                });
+              } catch (err: any) {
+                console.log('Error setting new reel playback instance - ignoring:', err?.message || 'Unknown error');
+                setIsChangingReel(false);
+              }
+            }, 200);
+          } else {
+            // If we couldn't find the video ref, end transition after a delay
+            setTimeout(() => {
+              setIsChangingReel(false);
+            }, 700);
+          }
+        }
+      }
     }
-  }).current;
+  }, [activeVideoIndex, reels, setCurrentReel, setPlaybackInstance, setReelIsPlaying]);
 
-  // Viewability config
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50
-  }).current;
+  // Sync playback state with ReelsPlayerContext
+  useEffect(() => {
+    if (currentReel && videoRefs.current) {
+      const videoId = currentReel.id;
+      const videoRef = videoRefs.current[videoId];
+      
+      if (videoRef) {
+        try {
+          videoRef.getStatusAsync().then(status => {
+            if (status.isLoaded) {
+              if (isReelPlaying && !status.isPlaying) {
+                videoRef.playAsync().catch(err => 
+                  console.log('Error playing video from context state change - ignoring:', err.message)
+                );
+              } else if (!isReelPlaying && status.isPlaying) {
+                videoRef.pauseAsync().catch(err => 
+                  console.log('Error pausing video from context state change - ignoring:', err.message)
+                );
+              }
+            }
+          }).catch(err => {
+            console.log('Error getting video status - ignoring:', err.message);
+          });
+        } catch (err) {
+          console.log('Unexpected error in playback sync - ignoring:', err);
+        }
+      }
+    }
+  }, [isReelPlaying, currentReel]);
+
+  // Handle video playback status updates
+  const onPlaybackStatusUpdate = (status: any, index: number) => {
+    // Skip updates during reel transitions to prevent flickering
+    if (isChangingReel) {
+      return;
+    }
+    
+    if (status.isLoaded && activeVideoIndex === index) {
+      // Update local state - but only if triggered by the video itself, not by our toggle action
+      const isCurrentlyPlaying = status.isPlaying;
+      
+      // We need to add a flag to prevent circular updates
+      if (!isTogglingPlayback) {
+        setIsCurrentVideoPlaying(isCurrentlyPlaying);
+        
+        // Only update context if state is different - avoid unnecessary updates
+        if (currentReel && reels[index].id === currentReel.id && isCurrentlyPlaying !== isReelPlaying) {
+          console.log(`Auto-syncing playback state from video: ${isCurrentlyPlaying}`);
+          setReelIsPlaying(isCurrentlyPlaying);
+        }
+      }
+      
+      if (status.durationMillis > 0) {
+        const newProgress = status.positionMillis / status.durationMillis;
+        if (!isDraggingProgress) {
+          setProgress(newProgress);
+          progressAnim.setValue(newProgress);
+        }
+      }
+    }
+  };
 
   // Format numbers for display (e.g., 1.2K, 3.4M)
   const formatNumber = (num: number): string => {
@@ -331,9 +476,10 @@ export default function ReelsScreen() {
   };
 
   // Track video duration and position for the current video
-  const [currentVideoDuration, setCurrentVideoDuration] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(0);
-  
+  const [currentVideoDuration, setCurrentVideoDuration] = useState(0);
+  const [isCurrentVideoPlaying, setIsCurrentVideoPlaying] = useState(true);
+
   // Update current position when progress changes
   useEffect(() => {
     if (currentVideoDuration > 0) {
@@ -341,42 +487,69 @@ export default function ReelsScreen() {
     }
   }, [progress, currentVideoDuration]);
 
-  // Track if the current video is playing or paused
-  const [isCurrentVideoPlaying, setIsCurrentVideoPlaying] = useState(true);
+  // State to track if we're currently toggling playback to prevent circular updates
+  const [isTogglingPlayback, setIsTogglingPlayback] = useState(false);
 
   // Toggle play/pause for the current video
-  const togglePlayPause = () => {
-    const videoRef = videoRefs.current[reels[activeVideoIndex].id];
-    if (videoRef) {
-      videoRef.getStatusAsync().then((status: any) => {
-        if (status.isPlaying) {
-          videoRef.pauseAsync();
-          setIsCurrentVideoPlaying(false);
-        } else {
-          videoRef.playAsync();
-          setIsCurrentVideoPlaying(true);
+  const togglePlayPause = async () => {
+    console.log("Toggling play/pause on main reels screen");
+    
+    // Set flag to prevent circular updates
+    setIsTogglingPlayback(true);
+    
+    // Make sure we're targeting the correct video based on active index
+    if (activeVideoIndex >= 0 && activeVideoIndex < reels.length) {
+      const currentReelId = reels[activeVideoIndex].id;
+      console.log(`Toggling playback for reel ID: ${currentReelId} at index ${activeVideoIndex}`);
+      
+      const videoRef = videoRefs.current[currentReelId];
+      if (videoRef) {
+        try {
+          const status = await videoRef.getStatusAsync();
+          
+          if (status.isLoaded) {
+            if (status.isPlaying) {
+              await videoRef.pauseAsync();
+              setIsCurrentVideoPlaying(false);
+              setReelIsPlaying(false); // Update context
+            } else {
+              await videoRef.playAsync();
+              setIsCurrentVideoPlaying(true);
+              setReelIsPlaying(true); // Update context
+            }
+          }
+        } catch (error) {
+          console.error('Error toggling play/pause:', error);
         }
-      });
+      } else {
+        console.log(`Video ref not found for reel ID: ${currentReelId}`);
+      }
+    } else {
+      console.log(`Invalid activeVideoIndex: ${activeVideoIndex}`);
     }
+    
+    // Reset flag after a short delay to allow the video to update its status
+    setTimeout(() => {
+      setIsTogglingPlayback(false);
+    }, 300);
   };
 
   // Handle like animation
   const animateLike = (index: number) => {
-    // Update likes count
-    const updatedReels = [...reels];
-    updatedReels[index].likes = (updatedReels[index].likes || 0) + 1;
-    setReels(updatedReels);
+    // Update likes count (we don't update the array anymore since it's a constant)
+    // For a real implementation, this would make an API call to update likes on the server
+    console.log(`Liked video: ${reels[index].title}`);
     
     // Animate the like button
     Animated.sequence([
       Animated.timing(likeAnimation, {
         toValue: 1.3,
-        duration: 150,
+        duration: 200,
         useNativeDriver: true,
       }),
       Animated.timing(likeAnimation, {
         toValue: 1,
-        duration: 150,
+        duration: 200,
         useNativeDriver: true,
       }),
     ]).start();
@@ -406,21 +579,6 @@ export default function ReelsScreen() {
         source: 'reels',
       }
     });
-  };
-
-  // Handle video playback status updates
-  const onPlaybackStatusUpdate = (status: any, index: number) => {
-    if (status.isLoaded && index === activeVideoIndex) {
-      if (status.durationMillis && status.durationMillis !== currentVideoDuration) {
-        setCurrentVideoDuration(status.durationMillis);
-      }
-      if (!isDraggingProgress) {
-        setProgress(status.positionMillis / status.durationMillis);
-        setCurrentPosition(status.positionMillis);
-      }
-      // Update playing state
-      setIsCurrentVideoPlaying(status.isPlaying);
-    }
   };
 
   // Right side action buttons
@@ -545,13 +703,27 @@ export default function ReelsScreen() {
           onPress={(event) => handleDoubleTap(index, event)}
         >
           <Video
-            ref={(ref) => { videoRefs.current[item.id] = ref; }}
+            ref={(ref) => {
+              if (ref) {
+                videoRefs.current[item.id] = ref;
+                
+                // Only update context when this is the active video
+                if (index === activeVideoIndex) {
+                  setTimeout(() => {
+                    try {
+                      setPlaybackInstance(ref);
+                    } catch (err: any) {
+                      console.log('Error setting playback instance - ignoring:', err?.message || 'Unknown error');
+                    }
+                  }, 100);
+                }
+              }
+            }}
             source={item.mediaSource}
             style={styles.video}
             resizeMode={ResizeMode.COVER}
-            isLooping
             shouldPlay={index === activeVideoIndex}
-            isMuted={false}
+            isLooping={true}
             onPlaybackStatusUpdate={(status) => onPlaybackStatusUpdate(status, index)}
           />
           
@@ -588,7 +760,6 @@ export default function ReelsScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <FlatList
-        ref={flatListRef}
         data={reels}
         renderItem={renderReelItem}
         keyExtractor={(item) => item.id}
@@ -597,8 +768,15 @@ export default function ReelsScreen() {
         snapToInterval={SCREEN_HEIGHT}
         snapToAlignment="start"
         decelerationRate="fast"
+        initialScrollIndex={0}
         viewabilityConfig={viewabilityConfig}
         onViewableItemsChanged={onViewableItemsChanged}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_HEIGHT,
+          offset: SCREEN_HEIGHT * index,
+          index,
+        })}
+        contentContainerStyle={{ minHeight: '100%' }}
       />
     </View>
   );

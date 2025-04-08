@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { PlayerProvider, sampleTracks } from '@/context/PlayerContext';
+import { ReelsPlayerProvider, sampleReels } from '@/components/ReelsPlayerContext';
 import { UserProvider, useUser } from '@/context/UserContext';
 import CustomSplashScreen from '@/components/SplashScreen';
 import OnboardingScreen from '@/components/OnboardingScreen';
@@ -105,7 +106,9 @@ export default function RootLayout() {
   return (
     <UserProvider>
       <PlayerProvider>
-        <AppContent />
+        <ReelsPlayerProvider>
+          <AppContent />
+        </ReelsPlayerProvider>
       </PlayerProvider>
     </UserProvider>
  );

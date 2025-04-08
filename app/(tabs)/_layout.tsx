@@ -11,6 +11,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePlayer } from '@/context/PlayerContext';
 import { MiniPlayer } from '@/components/MiniPlayer';
 import { ReelsMiniPlayer } from '@/components/ReelsMiniPlayer';
+import { useReelsPlayer, sampleReels } from '@/components/ReelsPlayerContext';
 
 // Get screen dimensions for responsive layout
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -96,17 +97,17 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { currentTrack, isPlaying, togglePlayPause, navigateToPlayer } = usePlayer();
+  const { currentReel, setCurrentReel, isPlaying: isReelPlaying, togglePlayPause: toggleReelPlayPause } = useReelsPlayer();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   
-  // State for ReelsMiniPlayer
-  const [currentReel, setCurrentReel] = useState({
-    title: "Believe in yourself",
-    creator: "@bassboostedmixtape724",
-    thumbnailUrl: "https://i.imgur.com/9GziU7v.png",
-    isPlaying: false
-  });
+  // Set a default reel if none is selected
+  useEffect(() => {
+    if (!currentReel && sampleReels.length > 0) {
+      setCurrentReel(sampleReels[0]);
+    }
+  }, [currentReel, setCurrentReel]);
   
   // Show ReelsMiniPlayer when not on the reels tab and not on player screen
   const showReelsMiniPlayer = !pathname.includes('/player') && pathname.includes('/reels') === false;
@@ -239,7 +240,7 @@ export default function TabLayout() {
       </Tabs>
 
       {/* ReelsMiniPlayer - Show when not on the reels tab */}
-      {showReelsMiniPlayer && (
+      {showReelsMiniPlayer && currentReel && (
         <View 
           style={[
             styles.miniPlayerContainer,
@@ -253,12 +254,9 @@ export default function TabLayout() {
             title={currentReel.title}
             creator={currentReel.creator}
             thumbnailUrl={currentReel.thumbnailUrl}
-            isPlaying={currentReel.isPlaying}
+            isPlaying={isReelPlaying}
             onPlayPause={(e) => {
-              setCurrentReel(prev => ({
-                ...prev,
-                isPlaying: !prev.isPlaying
-              }));
+              toggleReelPlayPause();
             }}
             onPress={() => {
               // Navigate to full reel view
