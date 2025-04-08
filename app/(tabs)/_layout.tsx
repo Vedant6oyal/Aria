@@ -1,8 +1,8 @@
 import { Tabs } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, View, Dimensions, StyleSheet, Animated, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { usePathname } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 
@@ -10,6 +10,7 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePlayer } from '@/context/PlayerContext';
 import { MiniPlayer } from '@/components/MiniPlayer';
+import { ReelsMiniPlayer } from '@/components/ReelsMiniPlayer';
 
 // Get screen dimensions for responsive layout
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -97,8 +98,20 @@ export default function TabLayout() {
   const { currentTrack, isPlaying, togglePlayPause, navigateToPlayer } = usePlayer();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   
-  // Determine if mini player should be shown
+  // State for ReelsMiniPlayer
+  const [currentReel, setCurrentReel] = useState({
+    title: "Believe in yourself",
+    creator: "@bassboostedmixtape724",
+    thumbnailUrl: "https://i.imgur.com/9GziU7v.png",
+    isPlaying: false
+  });
+  
+  // Show ReelsMiniPlayer when not on the reels tab and not on player screen
+  const showReelsMiniPlayer = !pathname.includes('/player') && pathname.includes('/reels') === false;
+  
+  // Show MiniPlayer only when there's a track and not on player screen
   const showMiniPlayer = currentTrack !== null && !pathname.includes('/player');
   
   // Custom tab bar renderer
@@ -224,6 +237,36 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+
+      {/* ReelsMiniPlayer - Show when not on the reels tab */}
+      {showReelsMiniPlayer && (
+        <View 
+          style={[
+            styles.miniPlayerContainer,
+            {
+              bottom: TAB_BAR_HEIGHT + insets.bottom + 5, // Position above tab bar
+              zIndex: 1 // Ensure it's above other content
+            }
+          ]}
+        >
+          <ReelsMiniPlayer
+            title={currentReel.title}
+            creator={currentReel.creator}
+            thumbnailUrl={currentReel.thumbnailUrl}
+            isPlaying={currentReel.isPlaying}
+            onPlayPause={(e) => {
+              setCurrentReel(prev => ({
+                ...prev,
+                isPlaying: !prev.isPlaying
+              }));
+            }}
+            onPress={() => {
+              // Navigate to full reel view
+              router.push('/reels');
+            }}
+          />
+        </View>
+      )}
 
       {/* Mini Player - positioned above the tab bar */}
       {showMiniPlayer && (
