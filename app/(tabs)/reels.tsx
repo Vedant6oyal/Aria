@@ -13,18 +13,20 @@ import {
   Easing,
   GestureResponderEvent,
   PanResponder,
+  ScrollView,
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePlayer, Track } from '@/context/PlayerContext';
-import { useReelsPlayer, Reel as ReelType } from '@/components/ReelsPlayerContext';
+import { useReelsPlayer, sampleReels, Reel as ReelType } from '@/components/ReelsPlayerContext';
 
 // Get screen dimensions for responsive layout
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -38,11 +40,38 @@ interface VideoReel extends Track {
   tags?: string[];
 }
 
+// Define tab types
+type ReelsTab = 'ForYou' | 'Library';
+
+// Convert sample reels to VideoReels format for consistency
+const convertReelsToVideoReels = (reels: ReelType[]): VideoReel[] => {
+  return reels.map(reel => ({
+    id: reel.id,
+    title: reel.title,
+    artist: reel.creator,
+    artwork: reel.thumbnailUrl,
+    duration: reel.duration || 60,
+    mediaSource: require('@/assets/audio/sample.mp4'), // Fallback
+    coverColor: '#4A148C',
+    secondaryColor: '#7B1FA2',
+    isVideo: true,
+    description: `Great track by ${reel.creator}`,
+    likes: reel.likes || 0,
+    comments: reel.comments || 0,
+    shares: reel.shares || 0,
+    tags: ['music', 'trending'],
+  }));
+};
+
 export default function ReelsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { setCurrentTrack, setIsPlaying } = usePlayer();
+
+  // Add state for current tab
+  const [activeTab, setActiveTab] = useState<ReelsTab>('ForYou');
 
   // Use our ReelsPlayerContext
   const { 
@@ -51,7 +80,8 @@ export default function ReelsScreen() {
     isPlaying: isReelPlaying, 
     setIsPlaying: setReelIsPlaying, 
     togglePlayPause: toggleReelPlayPause,
-    setPlaybackInstance
+    setPlaybackInstance,
+    playbackInstance
   } = useReelsPlayer();
   
   // Ref for FlatList to control scrolling
@@ -296,7 +326,7 @@ export default function ReelsScreen() {
 
   // Refs for video components
   const videoRefs = useRef<Record<string, Video>>({});
-  
+
   // Config for FlatList viewability
   const viewabilityConfig = { viewAreaCoveragePercentThreshold: 50 };
   
@@ -758,14 +788,16 @@ export default function ReelsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      
+      {/* Main reels content */}
       <FlatList
+        ref={flatListRef}
         data={reels}
         renderItem={renderReelItem}
         keyExtractor={(item) => item.id}
-        pagingEnabled
         showsVerticalScrollIndicator={false}
-        snapToInterval={SCREEN_HEIGHT}
+        pagingEnabled
         snapToAlignment="start"
         decelerationRate="fast"
         initialScrollIndex={0}
@@ -778,6 +810,47 @@ export default function ReelsScreen() {
         })}
         contentContainerStyle={{ minHeight: '100%' }}
       />
+      
+      {/* Floating tab navigation bar at top */}
+      <View style={[styles.floatingTabBar, { paddingTop: insets.top + 10 }]}>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === 'ForYou' && styles.activeTabButton
+            ]}
+            onPress={() => setActiveTab('ForYou')}
+          >
+            <Text 
+              style={[
+                styles.tabText, 
+                activeTab === 'ForYou' && styles.activeTabText
+              ]}
+            >
+              For You
+            </Text>
+            {activeTab === 'ForYou' && <View style={styles.activeTabIndicator} />}
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === 'Library' && styles.activeTabButton
+            ]}
+            onPress={() => setActiveTab('Library')}
+          >
+            <Text 
+              style={[
+                styles.tabText, 
+                activeTab === 'Library' && styles.activeTabText
+              ]}
+            >
+              Library
+            </Text>
+            {activeTab === 'Library' && <View style={styles.activeTabIndicator} />}
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -785,6 +858,48 @@ export default function ReelsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  floatingTabBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    zIndex: 10,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+  },
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    marginHorizontal: 10,
+    borderRadius: 20,
+  },
+  activeTabButton: {
+    backgroundColor: 'rgba(255, 87, 87, 0.2)',
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  activeTabText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  activeTabIndicator: {
+    position: 'absolute',
+    bottom: -5,
+    left: '25%',
+    right: '25%',
+    height: 3,
+    backgroundColor: '#FF5757',
+    borderRadius: 1.5,
   },
   reelContainer: {
     width: SCREEN_WIDTH,

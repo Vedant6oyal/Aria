@@ -52,6 +52,11 @@ export function ReelsPlayerProvider({ children }: { children: ReactNode }) {
   const [playbackInstance, setPlaybackInstance] = useState<Video | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Add refs for debouncing toggle operations
+  const isTogglingRef = useRef<boolean>(false);
+  const lastStateUpdateTimeRef = useRef<number>(0);
+  const toggleDebounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const router = useRouter();
 
   // Toggle play/pause for the current reel
@@ -63,19 +68,40 @@ export function ReelsPlayerProvider({ children }: { children: ReactNode }) {
       return;
     }
     
+    // Prevent rapid toggles and race conditions
+    const now = Date.now();
+    if (isTogglingRef.current || (now - lastStateUpdateTimeRef.current < 300)) {
+      console.log("Reels: Toggling too fast, ignoring request");
+      return;
+    }
+    
+    // Set toggling flag and update timestamp
+    isTogglingRef.current = true;
+    lastStateUpdateTimeRef.current = now;
+    
     try {
-      if (isPlaying) {
+      // Set a flag to indicate we're in the middle of a toggle operation
+      const newPlayingState = !isPlaying;
+      
+      // Update state first to make UI responsive
+      setIsPlaying(newPlayingState);
+      
+      if (!newPlayingState) {
         console.log("Reels: Pausing playback");
         await playbackInstance.pauseAsync();
       } else {
         console.log("Reels: Starting playback");
         await playbackInstance.playAsync();
       }
-      
-      // Update the state after successful operation
-      setIsPlaying(!isPlaying);
     } catch (error) {
       console.error("Reels: Error toggling playback:", error);
+      // Revert state on error
+      setIsPlaying(isPlaying);
+    } finally {
+      // Clear the toggling flag after a short delay to prevent bouncing
+      toggleDebounceTimeoutRef.current = setTimeout(() => {
+        isTogglingRef.current = false;
+      }, 300);
     }
   };
 

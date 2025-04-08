@@ -1,5 +1,5 @@
 // components/ReelsMiniPlayer.tsx
-import React from 'react';
+import React, { useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -39,9 +39,17 @@ export function ReelsMiniPlayer({
   const reelsPlayer = useReelsPlayer();
 
   // Handle play/pause button press
+  const lastClickRef = useRef<number | null>(null);
   const handlePlayPausePress = (event: GestureResponderEvent) => {
     // Stop propagation to prevent the container's onPress from firing
     event.stopPropagation();
+    
+    // Prevent multiple rapid clicks
+    const now = Date.now();
+    if (lastClickRef.current && now - lastClickRef.current < 300) {
+      return; // Ignore clicks that happen too quickly
+    }
+    lastClickRef.current = now;
     
     // Use the context's toggle function if available, otherwise fallback to props
     if (reelsPlayer.currentReel) {
