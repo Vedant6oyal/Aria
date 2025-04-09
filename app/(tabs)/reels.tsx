@@ -79,6 +79,19 @@ export default function ReelsScreen() {
     tabParam === 'Library' ? 'Library' : 'ForYou'
   );
 
+  // Tracks which video is active in each tab
+  const [forYouVideoIndex, setForYouVideoIndex] = useState(0);
+  const [libraryVideoIndex, setLibraryVideoIndex] = useState(0);
+
+  // Set active video index based on current tab
+  const updateActiveVideoIndex = useCallback((index: number) => {
+    if (activeTab === 'ForYou') {
+      setForYouVideoIndex(index);
+    } else {
+      setLibraryVideoIndex(index);
+    }
+  }, [activeTab]);
+
   // Reference to track if we've already processed the URL params
   const hasProcessedParams = useRef(false);
 
@@ -97,7 +110,7 @@ export default function ReelsScreen() {
   const flatListRef = useRef<FlatList>(null);
   
   // Current visible video index
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const [activeVideoIndexState, setActiveVideoIndexState] = useState(0);
   
   // Animation value for like button
   const likeAnimation = useRef(new Animated.Value(1)).current;
@@ -107,7 +120,7 @@ export default function ReelsScreen() {
   
   // Start spinning animation when a new video becomes active
   useEffect(() => {
-    if (activeVideoIndex >= 0) {
+    if (activeVideoIndexState >= 0) {
       // Reset and start spinning animation
       Animated.loop(
         Animated.timing(discSpinValue, {
@@ -118,7 +131,7 @@ export default function ReelsScreen() {
         })
       ).start();
     }
-  }, [activeVideoIndex]);
+  }, [activeVideoIndexState]);
   
   // Interpolate for rotation
   const spin = discSpinValue.interpolate({
@@ -156,7 +169,7 @@ export default function ReelsScreen() {
   
   // Apply progress to video
   const applyProgressToVideo = (newProgress: number) => {
-    const videoRef = videoRefs.current[reels[activeVideoIndex].id];
+    const videoRef = videoRefs.current[reels[activeVideoIndexState].id];
     if (videoRef) {
       videoRef.getStatusAsync().then((status: any) => {
         if (status.isLoaded && status.durationMillis) {
@@ -176,7 +189,7 @@ export default function ReelsScreen() {
         setInitialTouchX(event.nativeEvent.locationX);
         
         // Pause video while dragging
-        const videoRef = videoRefs.current[reels[activeVideoIndex].id];
+        const videoRef = videoRefs.current[reels[activeVideoIndexState].id];
         if (videoRef) {
           videoRef.pauseAsync();
         }
@@ -200,7 +213,7 @@ export default function ReelsScreen() {
         applyProgressToVideo(newProgress);
         
         // Resume playback
-        const videoRef = videoRefs.current[reels[activeVideoIndex].id];
+        const videoRef = videoRefs.current[reels[activeVideoIndexState].id];
         if (videoRef) {
           videoRef.playAsync();
         }
@@ -323,8 +336,11 @@ export default function ReelsScreen() {
       setActiveTab('Library');
       
       // Reset to the first video (which is the selected song)
-      setActiveVideoIndex(0);
+      setActiveVideoIndexState(0);
       
+      // Also update the library tab's index
+      setLibraryVideoIndex(0);
+
       // Update the ReelsPlayerContext with this song
       // This ensures the miniplayer displays the correct information
       const contextReel = {
@@ -367,95 +383,68 @@ export default function ReelsScreen() {
   const [isChangingReel, setIsChangingReel] = useState(false);
 
   // Handle viewable items change in FlatList
-  const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
-    if (viewableItems && viewableItems.length > 0) {
+  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: any[] }) => {
+    if (viewableItems.length > 0) {
       const newIndex = viewableItems[0].index;
       
       // Only update if the active index has changed
-      if (activeVideoIndex !== newIndex) {
-        console.log(`Changing active reel from index ${activeVideoIndex} to ${newIndex}`);
+      if (activeVideoIndexState !== newIndex) {
+        console.log(`Changing active reel from index ${activeVideoIndexState} to ${newIndex}`);
         
         // Set transition flag to prevent UI flickering
         setIsChangingReel(true);
         
         // First pause the current video if it exists
-        if (activeVideoIndex !== -1 && reels[activeVideoIndex]) {
-          const currentVideoRef = videoRefs.current[reels[activeVideoIndex].id];
+        if (activeVideoIndexState !== -1 && reels[activeVideoIndexState]) {
+          const currentVideoRef = videoRefs.current[reels[activeVideoIndexState].id];
           if (currentVideoRef) {
             try {
               currentVideoRef.pauseAsync().catch(err => {
-                console.log('Error pausing previous video - ignoring:', err);
+                console.error("Error pausing previous video:", err);
               });
-            } catch (err) {
-              console.log('Error accessing previous video ref - ignoring:', err);
-            }
+            } catch (e) {}
           }
         }
         
         // Update active index
-        setActiveVideoIndex(newIndex);
+        setActiveVideoIndexState(newIndex);
+        
+        // Also update the appropriate tab index
+        updateActiveVideoIndex(newIndex);
         
         // Update current reel in context
         if (reels[newIndex]) {
-          // Convert VideoReel to ReelType for the context
-          const contextReel: ReelType = {
+          // Create formatted object for ReelsPlayerContext
+          const contextReel = {
             id: reels[newIndex].id,
             title: reels[newIndex].title,
             creator: reels[newIndex].artist,
             thumbnailUrl: reels[newIndex].artwork,
-            videoUrl: reels[newIndex]?.mediaSource ? 'video://local' : undefined,
+            videoUrl: reels[newIndex].mediaSource,
+            duration: reels[newIndex].duration,
+            likes: reels[newIndex].likes || 0,
+            comments: reels[newIndex].comments || 0,
+            shares: reels[newIndex].shares || 0,
           };
           
-          // Update current reel in context and reset play state
-          setCurrentReel(contextReel);
-          setReelIsPlaying(true); // Auto-play when switching reels
-          
-          // Also update the local state to show playing icon immediately
-          setIsCurrentVideoPlaying(true);
-          
-          // Set the active video ref in the ReelsPlayerContext if available
-          const videoRef = videoRefs.current[reels[newIndex].id];
-          if (videoRef) {
-            setTimeout(() => {
-              try {
-                // Update playback instance in context
-                setPlaybackInstance(videoRef);
-                
-                // Make sure the video starts playing
-                videoRef.getStatusAsync().then(status => {
-                  if (status.isLoaded) {
-                    // Always play the new video
-                    videoRef.playAsync().then(() => {
-                      // End transition period after video starts playing
-                      setTimeout(() => {
-                        setIsChangingReel(false);
-                      }, 500);
-                    }).catch(err => {
-                      console.log('Error playing new video - ignoring:', err);
-                      setIsChangingReel(false);
-                    });
-                  } else {
-                    setIsChangingReel(false);
-                  }
-                }).catch(err => {
-                  console.log('Error getting video status when changing reel - ignoring:', err);
-                  setIsChangingReel(false);
-                });
-              } catch (err: any) {
-                console.log('Error setting new reel playback instance - ignoring:', err?.message || 'Unknown error');
-                setIsChangingReel(false);
-              }
-            }, 200);
-          } else {
-            // If we couldn't find the video ref, end transition after a delay
-            setTimeout(() => {
-              setIsChangingReel(false);
-            }, 700);
-          }
+          // Wait a short delay to avoid rapid sequential updates
+          setTimeout(() => {
+            // Set the new playback instance
+            if (videoRefs.current[reels[newIndex].id]) {
+              setPlaybackInstance(videoRefs.current[reels[newIndex].id]);
+            }
+            
+            // Update the context
+            setCurrentReel(contextReel);
+            setReelIsPlaying(true); // Auto-play when switching reels
+            
+            // Clear transition flag
+            setIsChangingReel(false);
+          }, 50);
         }
       }
     }
-  }, [activeVideoIndex, reels, setCurrentReel, setPlaybackInstance, setReelIsPlaying]);
+  }, [activeVideoIndexState, reels, setCurrentReel, setPlaybackInstance, setReelIsPlaying, updateActiveVideoIndex]);
 
   // Sync playback state with ReelsPlayerContext
   useEffect(() => {
@@ -494,7 +483,7 @@ export default function ReelsScreen() {
       return;
     }
     
-    if (status.isLoaded && activeVideoIndex === index) {
+    if (status.isLoaded && activeVideoIndexState === index) {
       // Update local state - but only if triggered by the video itself, not by our toggle action
       const isCurrentlyPlaying = status.isPlaying;
       
@@ -561,9 +550,9 @@ export default function ReelsScreen() {
     setIsTogglingPlayback(true);
     
     // Make sure we're targeting the correct video based on active index
-    if (activeVideoIndex >= 0 && activeVideoIndex < reels.length) {
-      const currentReelId = reels[activeVideoIndex].id;
-      console.log(`Toggling playback for reel ID: ${currentReelId} at index ${activeVideoIndex}`);
+    if (activeVideoIndexState >= 0 && activeVideoIndexState < reels.length) {
+      const currentReelId = reels[activeVideoIndexState].id;
+      console.log(`Toggling playback for reel ID: ${currentReelId} at index ${activeVideoIndexState}`);
       
       const videoRef = videoRefs.current[currentReelId];
       if (videoRef) {
@@ -588,7 +577,7 @@ export default function ReelsScreen() {
         console.log(`Video ref not found for reel ID: ${currentReelId}`);
       }
     } else {
-      console.log(`Invalid activeVideoIndex: ${activeVideoIndex}`);
+      console.log(`Invalid activeVideoIndex: ${activeVideoIndexState}`);
     }
     
     // Reset flag after a short delay to allow the video to update its status
@@ -651,7 +640,7 @@ export default function ReelsScreen() {
         style={styles.actionButton}
         onPress={() => animateLike(index)}
       >
-        <Animated.View style={{ transform: [{ scale: index === activeVideoIndex ? likeAnimation : 1 }] }}>
+        <Animated.View style={{ transform: [{ scale: index === activeVideoIndexState ? likeAnimation : 1 }] }}>
           <MaterialCommunityIcons name="heart" size={40} color="#FF5757" />
         </Animated.View>
         <ThemedText style={styles.actionText}>{formatNumber(item.likes || 0)}</ThemedText>
@@ -727,13 +716,13 @@ export default function ReelsScreen() {
           }}
           onSlidingStart={() => {
             setIsDraggingProgress(true);
-            const videoRef = videoRefs.current[reels[activeVideoIndex].id];
+            const videoRef = videoRefs.current[reels[activeVideoIndexState].id];
             if (videoRef) {
               videoRef.pauseAsync();
             }
           }}
           onSlidingComplete={(value) => {
-            const videoRef = videoRefs.current[reels[activeVideoIndex].id];
+            const videoRef = videoRefs.current[reels[activeVideoIndexState].id];
             if (videoRef) {
               videoRef.getStatusAsync().then((status: any) => {
                 if (status.isLoaded && status.durationMillis) {
@@ -771,7 +760,7 @@ export default function ReelsScreen() {
                 videoRefs.current[item.id] = ref;
                 
                 // Only update context when this is the active video
-                if (index === activeVideoIndex) {
+                if (index === activeVideoIndexState) {
                   setTimeout(() => {
                     try {
                       setPlaybackInstance(ref);
@@ -785,7 +774,7 @@ export default function ReelsScreen() {
             source={item.mediaSource}
             style={styles.video}
             resizeMode={ResizeMode.COVER}
-            shouldPlay={index === activeVideoIndex}
+            shouldPlay={index === activeVideoIndexState}
             isLooping={true}
             onPlaybackStatusUpdate={(status) => onPlaybackStatusUpdate(status, index)}
           />
@@ -821,7 +810,91 @@ export default function ReelsScreen() {
 
   // Tab selection handler
   const handleTabPress = (tab: ReelsTab) => {
+    // First try to pause any currently playing video (with error handling)
+    if (reels.length > 0 && activeVideoIndexState >= 0 && activeVideoIndexState < reels.length) {
+      const currentVideoRef = videoRefs.current[reels[activeVideoIndexState].id];
+      if (currentVideoRef) {
+        try {
+          currentVideoRef.pauseAsync().catch(err => {
+            console.log("Safely handled error pausing video during tab switch:", err);
+          });
+        } catch (e) {
+          console.log("Caught exception during video pause in tab switch:", e);
+        }
+      }
+    }
+    
+    // Change active tab
     setActiveTab(tab);
+    
+    // Get the correct index for the selected tab
+    const indexToUse = tab === 'ForYou' ? forYouVideoIndex : libraryVideoIndex;
+    
+    // Update the main activeVideoIndex
+    setActiveVideoIndexState(indexToUse);
+    
+    // Update reels array based on tab
+    const reelsToUse = tab === 'ForYou' ? forYouReels : libraryReels;
+    
+    // Only proceed with scrolling if there are items in the list
+    if (reelsToUse.length === 0) {
+      console.log(`No reels available for tab ${tab}`);
+      return;
+    }
+    
+    // Make sure the index is valid
+    const safeIndex = Math.min(indexToUse, reelsToUse.length - 1);
+    
+    // Scroll to the appropriate position for that tab with necessary delay
+    setTimeout(() => {
+      if (flatListRef.current) {
+        try {
+          flatListRef.current.scrollToIndex({ 
+            index: safeIndex,
+            animated: false
+          });
+          
+          // After a short delay, try to play the video at the remembered position
+          setTimeout(() => {
+            if (reelsToUse.length > 0 && safeIndex >= 0 && safeIndex < reelsToUse.length) {
+              try {
+                const newVideoRef = videoRefs.current[reelsToUse[safeIndex].id];
+                if (newVideoRef) {
+                  // Update the ReelsPlayerContext with this specific reel
+                  const contextReel = {
+                    id: reelsToUse[safeIndex].id,
+                    title: reelsToUse[safeIndex].title,
+                    creator: reelsToUse[safeIndex].artist,
+                    thumbnailUrl: reelsToUse[safeIndex].artwork,
+                    videoUrl: reelsToUse[safeIndex].mediaSource,
+                    duration: reelsToUse[safeIndex].duration || 0,
+                    likes: reelsToUse[safeIndex].likes || 0,
+                    comments: reelsToUse[safeIndex].comments || 0,
+                    shares: reelsToUse[safeIndex].shares || 0,
+                  };
+                  
+                  // Update the context
+                  setCurrentReel(contextReel);
+                  
+                  // Play the video
+                  newVideoRef.playAsync().catch(error => {
+                    console.log("Error playing video after tab switch:", error);
+                  });
+                  
+                  // Update playback states
+                  setIsCurrentVideoPlaying(true);
+                  setReelIsPlaying(true);
+                }
+              } catch (error) {
+                console.log("Error in video playback after tab switch:", error);
+              }
+            }
+          }, 150);
+        } catch (error) {
+          console.log("Error scrolling to index:", error);
+        }
+      }
+    }, 50);
   };
 
   // Tab indicator
