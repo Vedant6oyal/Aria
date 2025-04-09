@@ -381,12 +381,14 @@ export default function ReelsScreen() {
   
   // State to track if we're transitioning between reels
   const [isChangingReel, setIsChangingReel] = useState(false);
+  
+  // State to track if a tab change is in progress
+  const [isTabChanging, setIsTabChanging] = useState(false);
 
   // Handle viewable items change in FlatList
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: any[] }) => {
     if (viewableItems.length > 0) {
       const newIndex = viewableItems[0].index;
-      
       // Only update if the active index has changed
       if (activeVideoIndexState !== newIndex) {
         console.log(`Changing active reel from index ${activeVideoIndexState} to ${newIndex}`);
@@ -394,8 +396,8 @@ export default function ReelsScreen() {
         // Set transition flag to prevent UI flickering
         setIsChangingReel(true);
         
-        // First pause the current video if it exists
-        if (activeVideoIndexState !== -1 && reels[activeVideoIndexState]) {
+        // First pause the current video if it exists, but only if not in a tab change
+        if (!isTabChanging && activeVideoIndexState !== -1 && reels[activeVideoIndexState]) {
           const currentVideoRef = videoRefs.current[reels[activeVideoIndexState].id];
           if (currentVideoRef) {
             try {
@@ -444,7 +446,7 @@ export default function ReelsScreen() {
         }
       }
     }
-  }, [activeVideoIndexState, reels, setCurrentReel, setPlaybackInstance, setReelIsPlaying, updateActiveVideoIndex]);
+  }, [activeVideoIndexState, reels, setCurrentReel, setPlaybackInstance, setReelIsPlaying, updateActiveVideoIndex, isTabChanging]);
 
   // Sync playback state with ReelsPlayerContext
   useEffect(() => {
@@ -810,6 +812,7 @@ export default function ReelsScreen() {
 
   // Tab selection handler
   const handleTabPress = (tab: ReelsTab) => {
+    setIsTabChanging(true); // Set the flag to indicate a tab change is happening
     // First try to pause any currently playing video (with error handling)
     if (reels.length > 0 && activeVideoIndexState >= 0 && activeVideoIndexState < reels.length) {
       const currentVideoRef = videoRefs.current[reels[activeVideoIndexState].id];
@@ -895,6 +898,11 @@ export default function ReelsScreen() {
         }
       }
     }, 50);
+  
+    // Reset the tab changing flag after all operations are complete
+    setTimeout(() => {
+      setIsTabChanging(false);
+    }, 200); // Slightly longer than other timeouts
   };
 
   // Tab indicator
@@ -981,7 +989,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     paddingVertical: 10,
     paddingBottom: 15,
     alignItems: 'center',
@@ -989,8 +996,6 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(40, 40, 40, 0.7)',
-    borderRadius: 20,
     padding: 5,
   },
   tabButton: {
@@ -1003,7 +1008,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 87, 87, 0.3)',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'rgba(255, 255, 255, 0.7)',
   },
   activeTabText: {
