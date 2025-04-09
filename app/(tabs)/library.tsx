@@ -174,7 +174,19 @@ export default function LibraryScreen() {
       >
         <TouchableOpacity 
           style={styles.songItem}
-          onPress={() => router.push('/player')}
+          onPress={() => {
+            // Navigate to reels with the library tab active and play this song
+            router.push({
+              pathname: '/reels',
+              params: {
+                activeTab: 'Library',
+                songId: item.id,
+                songTitle: item.title,
+                songArtist: item.artist,
+                songColor: item.color
+              }
+            });
+          }}
           activeOpacity={0.7}
         >
           <LinearGradient

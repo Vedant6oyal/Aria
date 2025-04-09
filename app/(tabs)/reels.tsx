@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -19,7 +19,7 @@ import { Video, ResizeMode } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -43,22 +43,22 @@ interface VideoReel extends Track {
 // Define tab types
 type ReelsTab = 'ForYou' | 'Library';
 
-// Convert sample reels to VideoReels format for consistency
+// Converter function to map from ReelsPlayerContext Reel type to VideoReel type used in this component
 const convertReelsToVideoReels = (reels: ReelType[]): VideoReel[] => {
   return reels.map(reel => ({
     id: reel.id,
     title: reel.title,
     artist: reel.creator,
     artwork: reel.thumbnailUrl,
-    duration: reel.duration || 60,
-    mediaSource: require('@/assets/audio/sample.mp4'), // Fallback
-    coverColor: '#4A148C',
-    secondaryColor: '#7B1FA2',
+    duration: reel.duration,
+    mediaSource: reel.videoUrl,
+    coverColor: ['#3A1078', '#D21312', '#2D4356'][Math.floor(Math.random() * 3)],
+    secondaryColor: ['#4E31AA', '#F15A59', '#435B66'][Math.floor(Math.random() * 3)],
     isVideo: true,
-    description: `Great track by ${reel.creator}`,
-    likes: reel.likes || 0,
-    comments: reel.comments || 0,
-    shares: reel.shares || 0,
+    description: `${reel.title} by ${reel.creator}`,
+    likes: reel.likes,
+    comments: reel.comments,
+    shares: reel.shares,
     tags: ['music', 'trending'],
   }));
 };
@@ -69,9 +69,18 @@ export default function ReelsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { setCurrentTrack, setIsPlaying } = usePlayer();
+  
+  // Get URL parameters from navigation
+  const params = useLocalSearchParams();
+  const { activeTab: tabParam, songId, songTitle, songArtist, songColor } = params;
 
-  // Add state for current tab
-  const [activeTab, setActiveTab] = useState<ReelsTab>('ForYou');
+  // Add state for current tab with initial value from params if available
+  const [activeTab, setActiveTab] = useState<ReelsTab>(
+    tabParam === 'Library' ? 'Library' : 'ForYou'
+  );
+
+  // Reference to track if we've already processed the URL params
+  const hasProcessedParams = useRef(false);
 
   // Use our ReelsPlayerContext
   const { 
@@ -80,8 +89,8 @@ export default function ReelsScreen() {
     isPlaying: isReelPlaying, 
     setIsPlaying: setReelIsPlaying, 
     togglePlayPause: toggleReelPlayPause,
-    setPlaybackInstance,
-    playbackInstance
+    playbackInstance,
+    setPlaybackInstance
   } = useReelsPlayer();
   
   // Ref for FlatList to control scrolling
@@ -272,8 +281,14 @@ export default function ReelsScreen() {
     }
   };
   
-  // Sample video reels data
-  const [reels, setReels] = useState<VideoReel[]>([
+  // Video ref objects to control multiple videos
+  const videoRefs = useRef<{ [key: string]: Video }>({});
+  
+  // Create separate datasets for ForYou and Library tabs
+  const forYouReels = useMemo(() => convertReelsToVideoReels(sampleReels), []);
+  
+  // Create library reels dataset
+  const [libraryReels, setLibraryReels] = useState<VideoReel[]>([
     {
       id: 'reel1',
       title: 'Believe',
@@ -323,9 +338,71 @@ export default function ReelsScreen() {
       tags: ['newmusic', 'beat', 'aria'],
     },
   ]);
+  
+  // Get reels based on active tab
+  const reels = useMemo(() => {
+    return activeTab === 'ForYou' ? forYouReels : libraryReels;
+  }, [activeTab, forYouReels, libraryReels]);
 
-  // Refs for video components
-  const videoRefs = useRef<Record<string, Video>>({});
+  // Handle incoming song from Library screen
+  useEffect(() => {
+    if (songId && songTitle && !hasProcessedParams.current) {
+      // Create a new reel from the selected song
+      const newSongReel: VideoReel = {
+        id: songId as string,
+        title: songTitle as string,
+        artist: songArtist as string || 'Unknown Artist',
+        artwork: 'https://i.imgur.com/K3DvZbd.jpeg', // Default artwork
+        duration: 60,
+        mediaSource: require('@/assets/audio/sample.mp4'), // Use a sample media file
+        coverColor: songColor as string || '#3A1078',
+        secondaryColor: '#4E31AA',
+        isVideo: true,
+        description: `${songTitle} by ${songArtist || 'Unknown Artist'}`,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        tags: ['music', 'library'],
+      };
+      
+      // Check if this song already exists in library reels
+      const existingIndex = libraryReels.findIndex(reel => reel.id === songId);
+      
+      // If not in library, add it; otherwise move it to the top
+      let updatedLibraryReels;
+      if (existingIndex === -1) {
+        updatedLibraryReels = [newSongReel, ...libraryReels];
+      } else {
+        updatedLibraryReels = [
+          newSongReel,
+          ...libraryReels.filter(reel => reel.id !== songId)
+        ];
+      }
+      
+      setLibraryReels(updatedLibraryReels);
+      
+      // Set active tab to Library
+      setActiveTab('Library');
+      
+      // Reset to the first video (which is the selected song)
+      setActiveVideoIndex(0);
+      
+      // Scroll to beginning
+      setTimeout(() => {
+        if (flatListRef.current) {
+          flatListRef.current.scrollToOffset({ offset: 0, animated: false });
+        }
+        
+        // Auto-play the selected song
+        if (videoRefs.current[newSongReel.id]) {
+          videoRefs.current[newSongReel.id].playAsync();
+          setReelIsPlaying(true);
+        }
+      }, 300);
+      
+      hasProcessedParams.current = true;
+    }
+  }, [songId, songTitle]);
 
   // Config for FlatList viewability
   const viewabilityConfig = { viewAreaCoveragePercentThreshold: 50 };
@@ -786,6 +863,51 @@ export default function ReelsScreen() {
     );
   };
 
+  // Tab selection handler
+  const handleTabPress = (tab: ReelsTab) => {
+    setActiveTab(tab);
+  };
+
+  // Tab indicator
+  const renderTabIndicator = () => {
+    return (
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === 'ForYou' && styles.activeTab
+          ]}
+          onPress={() => handleTabPress('ForYou')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'ForYou' && styles.activeTabText
+            ]}
+          >
+            For You
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === 'Library' && styles.activeTab
+          ]}
+          onPress={() => handleTabPress('Library')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'Library' && styles.activeTabText
+            ]}
+          >
+            Library
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
@@ -813,43 +935,7 @@ export default function ReelsScreen() {
       
       {/* Floating tab navigation bar at top */}
       <View style={[styles.floatingTabBar, { paddingTop: insets.top + 10 }]}>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'ForYou' && styles.activeTabButton
-            ]}
-            onPress={() => setActiveTab('ForYou')}
-          >
-            <Text 
-              style={[
-                styles.tabText, 
-                activeTab === 'ForYou' && styles.activeTabText
-              ]}
-            >
-              For You
-            </Text>
-            {activeTab === 'ForYou' && <View style={styles.activeTabIndicator} />}
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'Library' && styles.activeTabButton
-            ]}
-            onPress={() => setActiveTab('Library')}
-          >
-            <Text 
-              style={[
-                styles.tabText, 
-                activeTab === 'Library' && styles.activeTabText
-              ]}
-            >
-              Library
-            </Text>
-            {activeTab === 'Library' && <View style={styles.activeTabIndicator} />}
-          </TouchableOpacity>
-        </View>
+        {renderTabIndicator()}
       </View>
     </View>
   );
@@ -858,48 +944,42 @@ export default function ReelsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'black',
   },
   floatingTabBar: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingVertical: 10,
+    paddingBottom: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
+    backgroundColor: 'rgba(40, 40, 40, 0.7)',
+    borderRadius: 20,
+    padding: 5,
   },
   tabButton: {
     paddingVertical: 8,
     paddingHorizontal: 20,
-    marginHorizontal: 10,
-    borderRadius: 20,
+    borderRadius: 16,
+    marginHorizontal: 5,
   },
-  activeTabButton: {
-    backgroundColor: 'rgba(255, 87, 87, 0.2)',
+  activeTab: {
+    backgroundColor: 'rgba(255, 87, 87, 0.3)',
   },
   tabText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
   },
   activeTabText: {
     color: '#FFFFFF',
     fontWeight: '700',
-  },
-  activeTabIndicator: {
-    position: 'absolute',
-    bottom: -5,
-    left: '25%',
-    right: '25%',
-    height: 3,
-    backgroundColor: '#FF5757',
-    borderRadius: 1.5,
   },
   reelContainer: {
     width: SCREEN_WIDTH,

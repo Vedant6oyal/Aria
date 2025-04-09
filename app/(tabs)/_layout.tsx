@@ -241,7 +241,7 @@ export default function TabLayout() {
           style={[
             styles.miniPlayerContainer,
             {
-              bottom: TAB_BAR_HEIGHT + insets.bottom, // Position above tab bar with insets
+              bottom: TAB_BAR_HEIGHT , // Position above tab bar with insets
               zIndex: 1 // Ensure it's above other content
             }
           ]}
