@@ -287,57 +287,8 @@ export default function ReelsScreen() {
   // Create separate datasets for ForYou and Library tabs
   const forYouReels = useMemo(() => convertReelsToVideoReels(sampleReels), []);
   
-  // Create library reels dataset
-  const [libraryReels, setLibraryReels] = useState<VideoReel[]>([
-    {
-      id: 'reel1',
-      title: 'Believe',
-      artist: 'Justin Bieber',
-      artwork: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop',
-      duration: 180,
-      mediaSource: require('@/assets/audio/Believe.mp4'),
-      coverColor: '#3A1078',
-      secondaryColor: '#4E31AA',
-      isVideo: true,
-      description: 'Latest hit from Justin Bieber! #music #pop',
-      likes: 45200,
-      comments: 1250,
-      shares: 3800,
-      tags: ['pop', 'justin', 'trending'],
-    },
-    {
-      id: 'reel2',
-      title: 'Everything Going to Be Alright',
-      artist: 'Bob Marley',
-      artwork: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=2070&auto=format&fit=crop',
-      duration: 210,
-      mediaSource: require('@/assets/audio/Everything going to be alright .mp4'),
-      coverColor: '#D21312',
-      secondaryColor: '#F15A59',
-      isVideo: true,
-      description: 'Classic reggae vibes to lift your spirits! #reggae #bobmarley',
-      likes: 78500,
-      comments: 2340,
-      shares: 5670,
-      tags: ['reggae', 'classic', 'goodvibes'],
-    },
-    {
-      id: 'reel3',
-      title: 'Sample Music',
-      artist: 'Aria Artist',
-      artwork: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop',
-      duration: 160,
-      mediaSource: require('@/assets/audio/sample.mp4'),
-      coverColor: '#2D4356',
-      secondaryColor: '#435B66',
-      isVideo: true,
-      description: 'Check out this amazing beat! #newmusic #aria',
-      likes: 12300,
-      comments: 450,
-      shares: 980,
-      tags: ['newmusic', 'beat', 'aria'],
-    },
-  ]);
+  // Create library reels dataset - initialize as empty since it will be populated based on user selection
+  const [libraryReels, setLibraryReels] = useState<VideoReel[]>([]);
   
   // Get reels based on active tab
   const reels = useMemo(() => {
@@ -365,27 +316,32 @@ export default function ReelsScreen() {
         tags: ['music', 'library'],
       };
       
-      // Check if this song already exists in library reels
-      const existingIndex = libraryReels.findIndex(reel => reel.id === songId);
-      
-      // If not in library, add it; otherwise move it to the top
-      let updatedLibraryReels;
-      if (existingIndex === -1) {
-        updatedLibraryReels = [newSongReel, ...libraryReels];
-      } else {
-        updatedLibraryReels = [
-          newSongReel,
-          ...libraryReels.filter(reel => reel.id !== songId)
-        ];
-      }
-      
-      setLibraryReels(updatedLibraryReels);
+      // Replace the entire library reels with just this one song
+      setLibraryReels([newSongReel]);
       
       // Set active tab to Library
       setActiveTab('Library');
       
       // Reset to the first video (which is the selected song)
       setActiveVideoIndex(0);
+      
+      // Update the ReelsPlayerContext with this song
+      // This ensures the miniplayer displays the correct information
+      const contextReel = {
+        id: newSongReel.id,
+        title: newSongReel.title,
+        creator: newSongReel.artist,
+        thumbnailUrl: newSongReel.artwork,
+        videoUrl: newSongReel.mediaSource,
+        duration: newSongReel.duration,
+        likes: newSongReel.likes || 0,
+        comments: newSongReel.comments || 0,
+        shares: newSongReel.shares || 0,
+      };
+      
+      // Update the global context for ReelsPlayer (for the miniplayer)
+      setCurrentReel(contextReel);
+      setReelIsPlaying(true);
       
       // Scroll to beginning
       setTimeout(() => {
