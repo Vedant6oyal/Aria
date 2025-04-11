@@ -385,6 +385,64 @@ export default function ReelsScreen() {
   // State to track if a tab change is in progress
   const [isTabChanging, setIsTabChanging] = useState(false);
 
+  // State to track visibility of the info section
+  const [isInfoVisible, setIsInfoVisible] = useState(true);
+  
+  // Reference to the auto-hide timeout
+  const hideInfoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Animated value for controlling the info section's position
+  const infoSectionAnim = useRef(new Animated.Value(0)).current; // 0 = visible, 1 = hidden (translateY)
+
+  // Function to show the info section with animation
+  const showInfoSection = useCallback(() => {
+    setIsInfoVisible(true);
+    Animated.timing(infoSectionAnim, {
+      toValue: 0, // Animate to visible position
+      duration: 300, // Animation duration
+      easing: Easing.out(Easing.ease), // Smooth easing
+      useNativeDriver: true, // Use native driver for performance
+    }).start();
+  }, [infoSectionAnim]);
+
+  // Function to hide the info section with animation
+  const hideInfoSection = useCallback(() => {
+    Animated.timing(infoSectionAnim, {
+      toValue: 1, // Animate to hidden position
+      duration: 300,
+      easing: Easing.in(Easing.ease),
+      useNativeDriver: true,
+    }).start(() => setIsInfoVisible(false)); // Set state after animation completes
+  }, [infoSectionAnim]);
+
+  // Function to reset the auto-hide timer
+  const resetInfoTimer = useCallback(() => {
+    // Clear any existing timeout
+    if (hideInfoTimeoutRef.current) {
+      clearTimeout(hideInfoTimeoutRef.current);
+    }
+    
+    // Show the info section (with animation)
+    showInfoSection();
+    
+    // Set a new timeout to hide it after 2 seconds
+    hideInfoTimeoutRef.current = setTimeout(() => {
+      hideInfoSection();
+    }, 3000);
+  }, [resetInfoTimer, showInfoSection, hideInfoSection]);
+
+  // Initialize the auto-hide timer
+  useEffect(() => {
+    resetInfoTimer();
+    
+    // Clean up on unmount
+    return () => {
+      if (hideInfoTimeoutRef.current) {
+        clearTimeout(hideInfoTimeoutRef.current);
+      }
+    };
+  }, [resetInfoTimer]);
+
   // Handle viewable items change in FlatList
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: any[] }) => {
     if (viewableItems.length > 0) {
@@ -440,8 +498,10 @@ export default function ReelsScreen() {
             setCurrentReel(contextReel);
             setReelIsPlaying(true); // Auto-play when switching reels
             
-            // Clear transition flag
-            setIsChangingReel(false);
+            // Clear transition flag with a delay to ensure all UI updates are complete
+            setTimeout(() => {
+              setIsChangingReel(false);
+            }, 150); // Increased from 0ms to 150ms to allow UI to stabilize
           }, 50);
         }
       }
@@ -501,6 +561,11 @@ export default function ReelsScreen() {
       }
       
       if (status.durationMillis > 0) {
+        // Set the video duration if it has changed
+        if (currentVideoDuration !== status.durationMillis) {
+          setCurrentVideoDuration(status.durationMillis);
+        }
+        
         const newProgress = status.positionMillis / status.durationMillis;
         if (!isDraggingProgress) {
           setProgress(newProgress);
@@ -678,7 +743,7 @@ export default function ReelsScreen() {
 
   // Bottom info section
   const infoSection = (item: VideoReel) => (
-    <View style={styles.infoContainer}>
+    <Animated.View style={[styles.infoContainer, { transform: [{ translateY: infoSectionAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 80] }) }] }]}>
       {/* Song title, artist and play controls in one row */}
       <View style={styles.songMainInfoContainer}>
         <TouchableOpacity 
@@ -743,8 +808,14 @@ export default function ReelsScreen() {
           maximumTrackTintColor="rgba(255, 255, 255, 0.15)"
         />
       </View>
-    </View>
+    </Animated.View>
   );
+
+  // Handle tap on video to show/hide info
+  const handleVideoTap = useCallback((index: number, event: GestureResponderEvent) => {
+    // Show the info section and reset the timer
+    resetInfoTimer();
+  }, [resetInfoTimer]);
 
   // Render each video reel item
   const renderReelItem = ({ item, index }: { item: VideoReel; index: number }) => {
@@ -754,7 +825,7 @@ export default function ReelsScreen() {
         <TouchableOpacity 
           style={styles.videoContainer}
           activeOpacity={1}
-          onPress={(event) => handleDoubleTap(index, event)}
+          onPress={(event) => handleVideoTap(index, event)} 
         >
           <Video
             ref={(ref) => {
@@ -805,7 +876,7 @@ export default function ReelsScreen() {
         
         {/* Action buttons and info section */}
         {actionButtons(item, index)}
-        {infoSection(item)}
+        {isInfoVisible && infoSection(item)}
       </View>
     );
   };
@@ -1057,7 +1128,7 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 80, // Keep original position
     left: 10,
     right: 10,
     zIndex: 2,
