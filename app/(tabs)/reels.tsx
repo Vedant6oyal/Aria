@@ -14,6 +14,8 @@ import {
   GestureResponderEvent,
   PanResponder,
   ScrollView,
+  Modal,
+  AppState
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,12 +23,14 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePlayer, Track } from '@/context/PlayerContext';
 import { useReelsPlayer, sampleReels, Reel as ReelType } from '@/components/ReelsPlayerContext';
+import OnboardingPopup from '@/components/OnboardingPopup';
 
 // Get screen dimensions for responsive layout
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -1016,6 +1020,52 @@ export default function ReelsScreen() {
     );
   };
 
+  // State for the onboarding popup
+  const [isOnboardingPopupVisible, setIsOnboardingPopupVisible] = useState(false);
+  const [isLoadingPopupState, setIsLoadingPopupState] = useState(true);
+
+  // --- TEMPORARY: Clear storage for testing --- 
+  useEffect(() => {
+    const clearFlag = async () => {
+      console.log('[DEBUG] Clearing onboarding flag for testing...');
+      await AsyncStorage.removeItem('hasSeenOnboardingPopup');
+      console.log('[DEBUG] Onboarding flag cleared.');
+    };
+    clearFlag();
+  }, []);
+
+  // Check AsyncStorage on mount to see if popup should be shown
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        const hasSeenPopup = await AsyncStorage.getItem('hasSeenOnboardingPopup');
+        if (hasSeenPopup !== 'true') {
+          // Delay slightly to ensure screen is ready and notifications (if any) are likely handled
+          setTimeout(() => {
+             setIsOnboardingPopupVisible(true);
+          }, 500); 
+        }
+      } catch (error) {
+        console.error('Error reading AsyncStorage for onboarding popup:', error);
+        // Decide if you want to show the popup on error or not
+      } finally {
+         setIsLoadingPopupState(false);
+      }
+    };
+
+    checkOnboardingStatus();
+  }, []);
+
+  // Handler for dismissing the popup
+  const handleDismissOnboardingPopup = useCallback(async () => {
+    setIsOnboardingPopupVisible(false);
+    try {
+      await AsyncStorage.setItem('hasSeenOnboardingPopup', 'true');
+    } catch (error) {
+      console.error('Error saving AsyncStorage for onboarding popup:', error);
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
@@ -1045,6 +1095,14 @@ export default function ReelsScreen() {
       <View style={[styles.floatingTabBar, { paddingTop: insets.top + 10 }]}>
         {renderTabIndicator()}
       </View>
+
+      {/* Conditionally render the Onboarding Popup */}
+      {!isLoadingPopupState && (
+        <OnboardingPopup 
+          isVisible={isOnboardingPopupVisible}
+          onDismiss={handleDismissOnboardingPopup}
+        />
+      )}
     </View>
   );
 }
