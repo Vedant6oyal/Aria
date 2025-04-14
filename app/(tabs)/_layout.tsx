@@ -154,14 +154,14 @@ export default function TabLayout() {
             }
           />
           
-          {/* Profile Tab */}
+          {/* Notifications Tab (Replaced Profile) */}
           <AnimatedTab
             isFocused={state.index === 2}
-            onPress={() => navigation.navigate('profile')}
-            label="Profile"
+            onPress={() => navigation.navigate('notifications')}
+            label="Notifications"
             icon={
               <MaterialCommunityIcons
-                name="account-circle"
+                name="bell-outline" // Changed icon
                 size={22}
                 color={state.index === 2 ? '#fff' : 'rgba(255,255,255,0.7)'}
               />
@@ -194,9 +194,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="profile"
+          name="notifications" // Changed screen name
           options={{
-            title: 'Profile',
+            title: 'Notifications', // Changed title
           }}
         />
         
