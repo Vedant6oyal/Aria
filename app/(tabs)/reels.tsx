@@ -100,7 +100,7 @@ export default function ReelsScreen() {
   const params = useLocalSearchParams();
   const { 
     activeTab: tabParam, 
-    songId, 
+    songId: songParam, 
     songTitle, 
     songCreator, 
     songThumbnail, 
@@ -147,7 +147,7 @@ export default function ReelsScreen() {
   const flatListRef = useRef<FlatList>(null);
   
   // Current visible video index
-  const [activeVideoIndexState, setActiveVideoIndexState] = useState(0);
+  const [activeVideoIndexState, setActiveVideoIndexState] = useState(2);
   
   // Animation value for like button
   const likeAnimation = useRef(new Animated.Value(1)).current;
@@ -349,77 +349,71 @@ export default function ReelsScreen() {
 
   // Handle incoming song from Library screen
   useEffect(() => {
-    if (songId && songTitle && !hasProcessedParams.current) {
-      // Create a new reel from the selected song
-      console.log('Received navigation to Library tab for song:', params);
-      // Use the parameters passed from library.tsx
-      const newSongReel: VideoReel = {
-        id: songId as string,
-        title: songTitle as string,
-        artist: songCreator as string || 'Unknown Artist',
-        thumbnailUrl: songThumbnail as string || 'default_thumbnail_url', // Use passed thumbnail, provide fallback
-        videoUrl: songVideo as string, // Use passed video URL
-        duration: parseInt(songDuration as string || '0', 10), // Parse duration string to number
-        likes: parseInt(songLikes as string || '0', 10), // Parse likes string to number
-        comments: parseInt(songComments as string || '0', 10), // Parse comments string to number
-        shares: parseInt(songShares as string || '0', 10), // Parse shares string to number
-        // Add other potentially expected fields based on VideoReel definition
-        songName: songTitle as string, 
-        artistName: songCreator as string || 'Unknown Artist',
-        tags: ['music', 'library', 'liked'], // Add relevant tags
-        // Default values for fields not passed (if any are needed by VideoReel)
-        // coverColor: '#3A1078', 
-        // secondaryColor: '#4E31AA',
-        // isVideo: true,
-        // description: `${songTitle} by ${songCreator || 'Unknown Artist'} - from Library`, 
-      };
-      
-      // Replace the entire liked reels with just this one song
-      setLikedReels([newSongReel]);
-      
-      // Set active tab to Liked
-      setActiveTab('Liked');
-      
-      // Reset to the first video (which is the selected song)
-      setActiveVideoIndexState(0);
-      
-      // Also update the liked tab's index
-      setLikedVideoIndex(0);
+    // Check if we received  a songId, and haven't processed yet
+    if ( songParam && !hasProcessedParams.current) {
+      console.log(`Received navigation to Liked tab for songId: ${songParam}`);
 
-      // Update the ReelsPlayerContext with this song
-      // This ensures the miniplayer displays the correct information
-      const contextReel = {
-        id: newSongReel.id,
-        title: newSongReel.title,
-        creator: newSongReel.artist,
-        thumbnailUrl: newSongReel.thumbnailUrl,
-        videoUrl: newSongReel.videoUrl,
-        duration: newSongReel.duration,
-        likes: newSongReel.likes || 0,
-        comments: newSongReel.comments || 0,
-        shares: newSongReel.shares || 0,
-      };
-      
-      // Update the global context for ReelsPlayer (for the miniplayer)
-      setCurrentReel(contextReel);
-      setReelIsPlaying(true);
-      
-      // Scroll to beginning
-      setTimeout(() => {
-        if (flatListRef.current) {
-          flatListRef.current.scrollToOffset({ offset: 0, animated: false });
-        }
-        
-        // Auto-play the selected song
-        if (videoRefs.current[newSongReel.id]) {
-          videoRefs.current[newSongReel.id].playAsync();
+      // Find the index of the song in the full likedReels array
+      const songIndex = likedReels.findIndex(reel => reel.id === songParam);
+      console.log(`Search for songId ${songParam} in likedReels resulted in index: ${songIndex}`);
+
+      if (songIndex !== -1) {
+        console.log(`Found song at index: ${songIndex}, preparing to select and scroll.`);
+        // Ensure the 'Liked' tab is active *before* scrolling
+        setActiveTab('Liked');
+
+        // Use a timeout to allow the FlatList for the 'Liked' tab to potentially render/update
+        // before attempting to scroll and update context.
+        setTimeout(() => {
+          // Scroll to the found index in the Liked FlatList
+          if (flatListRef.current) {
+            console.log(`Scrolling FlatList to index: ${songIndex}`);
+            flatListRef.current.scrollToIndex({ index: songIndex, animated: true });
+          }
+
+          // Update the active index states with the found index
+          setActiveVideoIndexState(songIndex); // Update main index state
+          setLikedVideoIndex(songIndex); // Update liked-specific index
+
+          // Update the ReelsPlayerContext with the found song
+          const foundReel = likedReels[songIndex];
+          const contextReel = {
+            id: foundReel.id,
+            title: foundReel.title,
+            creator: foundReel.artist,
+            thumbnailUrl: foundReel.artwork,
+            videoUrl: foundReel.mediaSource,
+            duration: foundReel.duration,
+            likes: foundReel.likes || 0,
+            comments: foundReel.comments || 0,
+            shares: foundReel.shares || 0,
+          };
+          
+          // Update the context
+          setCurrentReel(contextReel);
+          // Start playback if the context wasn't already playing
+          if (!isReelPlaying) {
+            console.log('Context was not playing, calling toggleReelPlayPause');
+            toggleReelPlayPause();
+          }
+
+          // Update playback states
+          setIsCurrentVideoPlaying(true);
           setReelIsPlaying(true);
-        }
-      }, 300);
-      
-      hasProcessedParams.current = true;
+        }, 100); // Timeout duration (adjust if needed)
+
+        // Mark params as processed to prevent re-triggering
+        hasProcessedParams.current = true;
+
+      } else {
+        console.warn(`Song with ID ${songParam} not found in likedReels.`);
+        // Fallback: just switch to the Liked tab without selecting/scrolling
+        setActiveTab('Liked');
+        hasProcessedParams.current = true; // Mark as processed even if not found
+      }
     }
-  }, [songId, songTitle]);
+  // Dependencies: The params, the reels list, context functions, and state setters involved.
+  }, [tabParam, songParam, likedReels, flatListRef, setActiveTab, setActiveVideoIndexState, setLikedVideoIndex, setCurrentReel, isReelPlaying, toggleReelPlayPause, setReelIsPlaying]);
 
   // Config for FlatList viewability
   const viewabilityConfig = { viewAreaCoveragePercentThreshold: 50 };
