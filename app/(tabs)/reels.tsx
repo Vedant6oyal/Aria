@@ -131,6 +131,8 @@ export default function ReelsScreen() {
 
   // Reference to track if we've already processed the URL params
   const hasProcessedParams = useRef(false);
+  // Add a ref to track the last processed navigation timestamp
+  const lastProcessedTimestamp = useRef<string | null>(null);
 
   // Use our ReelsPlayerContext
   const { 
@@ -347,15 +349,28 @@ export default function ReelsScreen() {
     return activeTab === 'ForYou' ? forYouReels : likedReels;
   }, [activeTab, forYouReels, likedReels]);
 
-  // Handle incoming song from Library screen
+  // Effect to handle incoming navigation parameters
   useEffect(() => {
-    // Check if we received  a songId, and haven't processed yet
-    if ( songParam && !hasProcessedParams.current) {
-      console.log(`Received navigation to Liked tab for songId: ${songParam}`);
+    // Explicitly type params for better checking
+    const currentParams = params as { songId?: string; navTimestamp?: string }; 
+    const currentTimestamp = currentParams.navTimestamp;
+
+    // Check if we have a new navigation timestamp from the library
+    if (currentTimestamp && currentTimestamp !== lastProcessedTimestamp.current) {
+      console.log('[ReelsScreen] New navigation detected, resetting processed flag.');
+      // Reset the processed flag because this is a new navigation event
+      hasProcessedParams.current = false;
+      // Store the new timestamp as the last processed one
+      lastProcessedTimestamp.current = currentTimestamp;
+    }
+
+    // Proceed only if we have a songId and haven't processed *this specific* navigation yet
+    if (currentParams.songId && !hasProcessedParams.current) {
+      console.log(`[ReelsScreen] Processing params for songId: ${currentParams.songId}, timestamp: ${currentTimestamp}`);
 
       // Find the index of the song in the full likedReels array
-      const songIndex = likedReels.findIndex(reel => reel.id === songParam);
-      console.log(`Search for songId ${songParam} in likedReels resulted in index: ${songIndex}`);
+      const songIndex = likedReels.findIndex(reel => reel.id === currentParams.songId);
+      console.log(`Search for songId ${currentParams.songId} in likedReels resulted in index: ${songIndex}`);
 
       if (songIndex !== -1) {
         console.log(`Found song at index: ${songIndex}, preparing to select and scroll.`);
@@ -406,14 +421,18 @@ export default function ReelsScreen() {
         hasProcessedParams.current = true;
 
       } else {
-        console.warn(`Song with ID ${songParam} not found in likedReels.`);
+        console.warn(`Song with ID ${currentParams.songId} not found in likedReels.`);
         // Fallback: just switch to the Liked tab without selecting/scrolling
         setActiveTab('Liked');
         hasProcessedParams.current = true; // Mark as processed even if not found
       }
+    } else if (currentParams.songId && hasProcessedParams.current) {
+      console.log(`[ReelsScreen] Params for songId: ${currentParams.songId} already processed for timestamp: ${lastProcessedTimestamp.current}. Skipping.`);
     }
-  // Dependencies: The params, the reels list, context functions, and state setters involved.
-  }, [tabParam, songParam, likedReels, flatListRef, setActiveTab, setActiveVideoIndexState, setLikedVideoIndex, setCurrentReel, isReelPlaying, toggleReelPlayPause, setReelIsPlaying]);
+
+    // **IMPORTANT**: Ensure all necessary dependencies are listed correctly
+    // Example: }, [params, reels, updateActiveVideoIndex, setCurrentReel]);
+  }, [params, reels, updateActiveVideoIndex, setCurrentReel]);
 
   // Config for FlatList viewability
   const viewabilityConfig = { viewAreaCoveragePercentThreshold: 50 };

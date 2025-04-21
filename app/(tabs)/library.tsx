@@ -145,6 +145,8 @@ export default function LibraryScreen() {
           songComments: item.comments.toString(),
           songShares: item.shares.toString(),
           songDuration: item.duration.toString(),
+          // Add unique timestamp for navigation detection
+          navTimestamp: Date.now().toString(), 
         }
       });
     }}>
