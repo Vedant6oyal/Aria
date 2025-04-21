@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, FlatList, StatusBar, Platform, Animated } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, FlatList, StatusBar, Platform, Animated, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,99 +13,65 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 // Define types for the song data
-interface SongItem {
+export interface Song {
   id: string;
   title: string;
-  artist: string;
-  plays: number;
+  creator: string;
+  thumbnailUrl: string;
+  videoUrl: any; // Assuming require returns a specific type or number
+  duration: number;
   likes: number;
   comments: number;
-  version: string | null;
-  color: string;
+  shares: number;
 }
 
 // Mock data for liked songs
-const likedSongs: SongItem[] = [
-  { 
-    id: '1', 
-    title: 'Affirmation', 
-    artist: 'Affirmation', 
-    plays: 3, 
-    likes: 1, 
-    comments: 0,
-    version: null,
-    color: '#FF7B54',
+export const likedSongs: Song[] = [
+  {
+    id: 'reel1',
+    title: 'Believe',
+    creator: 'Justin Bieber',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop',
+    videoUrl: require('@/assets/audio/Believe.mp4'),
+    duration: 180,
+    likes: 45200,
+    comments: 1250,
+    shares: 3800,
   },
-  { 
-    id: '2', 
-    title: 'Thank you', 
-    artist: '', 
-    plays: 14, 
-    likes: 1, 
-    comments: 0,
-    version: 'v4',
-    color: '#FFB6C1',
+  {
+    id: 'reel2',
+    title: 'Intentions',
+    creator: 'Justin Bieber',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=2070&auto=format&fit=crop',
+    videoUrl: require('@/assets/audio/Everything going to be alright .mp4'),
+    duration: 210,
+    likes: 68300,
+    comments: 2100,
+    shares: 5500,
   },
-  { 
-    id: '3', 
-    title: 'You Are Light', 
-    artist: '', 
-    plays: 5, 
-    likes: 1, 
-    comments: 0,
-    version: null,
-    color: '#8E92EF',
+  {
+    id: 'reel3',
+    title: 'Umbrella',
+    creator: 'Rihanna',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=2070&auto=format&fit=crop',
+    videoUrl: require('@/assets/audio/Believe.mp4'),
+    duration: 245,
+    likes: 95000,
+    comments: 4200,
+    shares: 8900,
   },
-  { 
-    id: '4', 
-    title: 'Whispers Of The Universe', 
-    artist: '', 
-    plays: 4, 
-    likes: 1, 
-    comments: 0,
-    version: null,
-    color: '#00CCB4',
+  {
+    id: 'reel4',
+    title: 'Sorry',
+    creator: 'Justin Bieber',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?q=80&w=2072&auto=format&fit=crop',
+    videoUrl: require('@/assets/audio/Everything going to be alright .mp4'),
+    duration: 195,
+    likes: 72100,
+    comments: 3500,
+    shares: 6800,
   },
-  { 
-    id: '5', 
-    title: 'Untitled', 
-    artist: 'folk-pop, soft rock', 
-    plays: 7, 
-    likes: 1, 
-    comments: 0,
-    version: null,
-    color: '#FFA07A',
-  },
-  { 
-    id: '6', 
-    title: 'Everything going to be alright', 
-    artist: '', 
-    plays: 3, 
-    likes: 1, 
-    comments: 0,
-    version: 'v4',
-    color: '#36D97F',
-  },
-  { 
-    id: '7', 
-    title: 'Everything going to be alright', 
-    artist: '', 
-    plays: 3, 
-    likes: 1, 
-    comments: 0,
-    version: 'v4',
-    color: '#87CEEB',
-  },
-  { 
-    id: '8', 
-    title: 'Thank you goddd', 
-    artist: '', 
-    plays: 2, 
-    likes: 1, 
-    comments: 0,
-    version: 'v4',
-    color: '#FFD700',
-  },
+  // Add more liked songs as needed
 ];
 
 export default function LibraryScreen() {
@@ -159,97 +125,39 @@ export default function LibraryScreen() {
     return "#" + RR + GG + BB;
   };
 
-  const renderSongItem = ({ item, index }: { item: SongItem, index: number }) => {
-    // Calculate a slight delay for each item to create a staggered animation effect
-    const animationDelay = index * 100;
-    
-    return (
-      <Animated.View
-        style={{
-          opacity: 1,
-          transform: [{ 
-            translateY: 0
-          }]
-        }}
-      >
-        <TouchableOpacity 
-          style={styles.songItem}
-          onPress={() => {
-            // Navigate to reels with the library tab active and play this song
-            router.push({
-              pathname: '/reels',
-              params: {
-                activeTab: 'Library',
-                songId: item.id,
-                songTitle: item.title,
-                songArtist: item.artist,
-                songColor: item.color
-              }
-            });
-          }}
-          activeOpacity={0.7}
-        >
-          <LinearGradient
-            colors={[item.color, shadeColor(item.color, -20)]}
-            style={styles.songArtwork}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <MaterialCommunityIcons name="music" size={20} color="#FFFFFF" />
-          </LinearGradient>
-          
-          <View style={styles.songInfo}>
-            <View>
-              <ThemedText style={styles.songTitle}>
-                {item.title}
-                {item.version && (
-                  <View style={styles.versionBadge}>
-                    <ThemedText style={styles.versionText}>{item.version}</ThemedText>
-                  </View>
-                )}
-              </ThemedText>
-              {item.artist ? (
-                <ThemedText style={styles.songArtist}>{item.artist}</ThemedText>
-              ) : null}
-            </View>
-            
-            <View style={styles.songStats}>
-              <View style={styles.statItem}>
-                <MaterialCommunityIcons name="play" size={14} color={colors.text} style={styles.statIcon} />
-                <ThemedText style={styles.statText}>{item.plays}</ThemedText>
-              </View>
-              
-              <View style={styles.statItem}>
-                <MaterialCommunityIcons name="thumb-up" size={14} color={colors.text} style={styles.statIcon} />
-                <ThemedText style={styles.statText}>{item.likes}</ThemedText>
-              </View>
-              
-              <View style={styles.statItem}>
-                <MaterialCommunityIcons name="comment" size={14} color={colors.text} style={styles.statIcon} />
-                <ThemedText style={styles.statText}>{item.comments}</ThemedText>
-              </View>
-              
-              <MaterialCommunityIcons name="web" size={14} color={colors.text} style={styles.webIcon} />
-            </View>
-          </View>
-          
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.likeButton}>
-              <MaterialCommunityIcons 
-                name="thumb-up" 
-                size={22} 
-                color={colors.tint} 
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.menuButton}>
-              <MaterialCommunityIcons name="dots-vertical" size={22} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  };
+  const renderSongItem = ({ item }: { item: Song }) => (
+    <TouchableOpacity style={styles.songItem} onPress={() => {
+      // Navigate to reels with the library tab active and play this song
+      router.push({
+        pathname: '/reels',
+        params: {
+          // Explicitly pass all song details
+          activeTab: 'Library',
+          songId: item.id,
+          songTitle: item.title,
+          songCreator: item.creator,
+          songThumbnail: item.thumbnailUrl,
+          // Pass the video require result. Reels screen will need to handle this.
+          // Note: Passing complex objects or require results directly can sometimes be tricky.
+          // If issues arise, consider passing the asset path string instead.
+          songVideo: item.videoUrl,
+          songLikes: item.likes.toString(), // Pass numbers as strings
+          songComments: item.comments.toString(),
+          songShares: item.shares.toString(),
+          songDuration: item.duration.toString(),
+        }
+      });
+    }}>
+      <Image source={{ uri: item.thumbnailUrl }} style={styles.songImage} />
+      <View style={styles.songInfo}>
+        <ThemedText style={styles.songTitle}>{item.title}</ThemedText>
+        <ThemedText style={styles.songArtist}>{item.creator}</ThemedText>
+      </View>
+      <TouchableOpacity onPress={() => { /* Handle like/unlike */ }}>
+        <MaterialCommunityIcons name="heart" size={24} color="red" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
 
   // Render header component
   const renderHeader = () => (
@@ -425,17 +333,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.02)',
   },
-  songArtwork: {
+  songImage: {
     width: 44,
     height: 44,
     borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
   },
   songInfo: {
     flex: 1,
@@ -446,54 +347,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  versionBadge: {
-    backgroundColor: '#FFD93D', // Use the warning color from common
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginLeft: 8,
-  },
-  versionText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#000',
   },
   songArtist: {
     fontSize: 14,
     opacity: 0.7,
-  },
-  songStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  statIcon: {
-    marginRight: 4,
-    opacity: 0.7,
-  },
-  statText: {
-    fontSize: 12,
-    opacity: 0.7,
-  },
-  webIcon: {
-    opacity: 0.7,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  likeButton: {
-    padding: 8,
-  },
-  menuButton: {
-    padding: 8,
   },
 });

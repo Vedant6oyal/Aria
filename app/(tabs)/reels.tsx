@@ -32,6 +32,9 @@ import { usePlayer, Track } from '@/context/PlayerContext';
 import { useReelsPlayer, sampleReels, Reel as ReelType } from '@/components/ReelsPlayerContext';
 import OnboardingPopup from '@/components/OnboardingPopup';
 
+// Import likedSongs and the Song interface
+import { likedSongs as libraryLikedSongs, Song as LibrarySong } from './library';
+
 // Get screen dimensions for responsive layout
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -45,7 +48,7 @@ interface VideoReel extends Track {
 }
 
 // Define tab types
-type ReelsTab = 'ForYou' | 'Library';
+type ReelsTab = 'ForYou' | 'Liked';
 
 // Converter function to map from ReelsPlayerContext Reel type to VideoReel type used in this component
 const convertReelsToVideoReels = (reels: ReelType[]): VideoReel[] => {
@@ -67,6 +70,25 @@ const convertReelsToVideoReels = (reels: ReelType[]): VideoReel[] => {
   }));
 };
 
+// Converter function to map from LibrarySong type to VideoReel type
+const convertLibrarySongsToVideoReels = (songs: LibrarySong[]): VideoReel[] => {
+  return songs.map((song) => ({
+    id: song.id,
+    title: song.title,
+    artist: song.creator,
+    thumbnailUrl: song.thumbnailUrl,
+    videoUrl: song.videoUrl, // Assuming videoUrl is compatible
+    duration: song.duration,
+    likes: song.likes,
+    comments: song.comments,
+    shares: song.shares,
+    // Add default or placeholder values for fields not present in LibrarySong if necessary
+    songName: song.title, // Example: using title as songName
+    artistName: song.creator, // Example: using creator as artistName
+    tags: ['liked', 'music'], // Add relevant tags
+  }));
+};
+
 export default function ReelsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -80,19 +102,19 @@ export default function ReelsScreen() {
 
   // Add state for current tab with initial value from params if available
   const [activeTab, setActiveTab] = useState<ReelsTab>(
-    tabParam === 'Library' ? 'Library' : 'ForYou'
+    tabParam === 'Liked' ? 'Liked' : 'ForYou'
   );
 
   // Tracks which video is active in each tab
   const [forYouVideoIndex, setForYouVideoIndex] = useState(0);
-  const [libraryVideoIndex, setLibraryVideoIndex] = useState(0);
+  const [likedVideoIndex, setLikedVideoIndex] = useState(0);
 
   // Set active video index based on current tab
   const updateActiveVideoIndex = useCallback((index: number) => {
     if (activeTab === 'ForYou') {
       setForYouVideoIndex(index);
     } else {
-      setLibraryVideoIndex(index);
+      setLikedVideoIndex(index);
     }
   }, [activeTab]);
 
@@ -301,16 +323,18 @@ export default function ReelsScreen() {
   // Video ref objects to control multiple videos
   const videoRefs = useRef<{ [key: string]: Video }>({});
   
-  // Create separate datasets for ForYou and Library tabs
+  // Create separate datasets for ForYou and Liked tabs
   const forYouReels = useMemo(() => convertReelsToVideoReels(sampleReels), []);
   
-  // Create library reels dataset - initialize as empty since it will be populated based on user selection
-  const [libraryReels, setLibraryReels] = useState<VideoReel[]>([]);
+  // Create liked reels dataset using imported data
+  const [likedReels, setLikedReels] = useState<VideoReel[]>(() => 
+    convertLibrarySongsToVideoReels(libraryLikedSongs)
+  );
   
   // Get reels based on active tab
   const reels = useMemo(() => {
-    return activeTab === 'ForYou' ? forYouReels : libraryReels;
-  }, [activeTab, forYouReels, libraryReels]);
+    return activeTab === 'ForYou' ? forYouReels : likedReels;
+  }, [activeTab, forYouReels, likedReels]);
 
   // Handle incoming song from Library screen
   useEffect(() => {
@@ -333,17 +357,17 @@ export default function ReelsScreen() {
         tags: ['music', 'library'],
       };
       
-      // Replace the entire library reels with just this one song
-      setLibraryReels([newSongReel]);
+      // Replace the entire liked reels with just this one song
+      setLikedReels([newSongReel]);
       
-      // Set active tab to Library
-      setActiveTab('Library');
+      // Set active tab to Liked
+      setActiveTab('Liked');
       
       // Reset to the first video (which is the selected song)
       setActiveVideoIndexState(0);
       
-      // Also update the library tab's index
-      setLibraryVideoIndex(0);
+      // Also update the liked tab's index
+      setLikedVideoIndex(0);
 
       // Update the ReelsPlayerContext with this song
       // This ensures the miniplayer displays the correct information
@@ -906,13 +930,13 @@ export default function ReelsScreen() {
     setActiveTab(tab);
     
     // Get the correct index for the selected tab
-    const indexToUse = tab === 'ForYou' ? forYouVideoIndex : libraryVideoIndex;
+    const indexToUse = tab === 'ForYou' ? forYouVideoIndex : likedVideoIndex;
     
     // Update the main activeVideoIndex
     setActiveVideoIndexState(indexToUse);
     
     // Update reels array based on tab
-    const reelsToUse = tab === 'ForYou' ? forYouReels : libraryReels;
+    const reelsToUse = tab === 'ForYou' ? forYouReels : likedReels;
     
     // Only proceed with scrolling if there are items in the list
     if (reelsToUse.length === 0) {
@@ -1003,17 +1027,17 @@ export default function ReelsScreen() {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === 'Library' && styles.activeTab
+            activeTab === 'Liked' && styles.activeTab
           ]}
-          onPress={() => handleTabPress('Library')}
+          onPress={() => handleTabPress('Liked')}
         >
           <Text
             style={[
               styles.tabText,
-              activeTab === 'Library' && styles.activeTabText
+              activeTab === 'Liked' && styles.activeTabText
             ]}
           >
-            Library
+            Liked
           </Text>
         </TouchableOpacity>
       </View>
