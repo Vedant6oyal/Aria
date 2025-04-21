@@ -98,7 +98,18 @@ export default function ReelsScreen() {
   
   // Get URL parameters from navigation
   const params = useLocalSearchParams();
-  const { activeTab: tabParam, songId, songTitle, songArtist, songColor } = params;
+  const { 
+    activeTab: tabParam, 
+    songId, 
+    songTitle, 
+    songCreator, 
+    songThumbnail, 
+    songVideo, 
+    songLikes, 
+    songComments, 
+    songShares, 
+    songDuration 
+  } = params;
 
   // Add state for current tab with initial value from params if available
   const [activeTab, setActiveTab] = useState<ReelsTab>(
@@ -340,21 +351,27 @@ export default function ReelsScreen() {
   useEffect(() => {
     if (songId && songTitle && !hasProcessedParams.current) {
       // Create a new reel from the selected song
+      console.log('Received navigation to Library tab for song:', params);
+      // Use the parameters passed from library.tsx
       const newSongReel: VideoReel = {
         id: songId as string,
         title: songTitle as string,
-        artist: songArtist as string || 'Unknown Artist',
-        artwork: 'https://i.imgur.com/K3DvZbd.jpeg', // Default artwork
-        duration: 60,
-        mediaSource: require('@/assets/audio/sample.mp4'), // Use a sample media file
-        coverColor: songColor as string || '#3A1078',
-        secondaryColor: '#4E31AA',
-        isVideo: true,
-        description: `${songTitle} by ${songArtist || 'Unknown Artist'}`,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        tags: ['music', 'library'],
+        artist: songCreator as string || 'Unknown Artist',
+        thumbnailUrl: songThumbnail as string || 'default_thumbnail_url', // Use passed thumbnail, provide fallback
+        videoUrl: songVideo as string, // Use passed video URL
+        duration: parseInt(songDuration as string || '0', 10), // Parse duration string to number
+        likes: parseInt(songLikes as string || '0', 10), // Parse likes string to number
+        comments: parseInt(songComments as string || '0', 10), // Parse comments string to number
+        shares: parseInt(songShares as string || '0', 10), // Parse shares string to number
+        // Add other potentially expected fields based on VideoReel definition
+        songName: songTitle as string, 
+        artistName: songCreator as string || 'Unknown Artist',
+        tags: ['music', 'library', 'liked'], // Add relevant tags
+        // Default values for fields not passed (if any are needed by VideoReel)
+        // coverColor: '#3A1078', 
+        // secondaryColor: '#4E31AA',
+        // isVideo: true,
+        // description: `${songTitle} by ${songCreator || 'Unknown Artist'} - from Library`, 
       };
       
       // Replace the entire liked reels with just this one song
@@ -375,8 +392,8 @@ export default function ReelsScreen() {
         id: newSongReel.id,
         title: newSongReel.title,
         creator: newSongReel.artist,
-        thumbnailUrl: newSongReel.artwork,
-        videoUrl: newSongReel.mediaSource,
+        thumbnailUrl: newSongReel.thumbnailUrl,
+        videoUrl: newSongReel.videoUrl,
         duration: newSongReel.duration,
         likes: newSongReel.likes || 0,
         comments: newSongReel.comments || 0,
