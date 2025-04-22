@@ -1118,6 +1118,23 @@ export default function ReelsScreen() {
     }
   }, []);
 
+  // Effect to handle screen focus/blur
+  useEffect(() => {
+    // TODO: Ideally, use useFocusEffect from @react-navigation/native 
+    // if using React Navigation directly, or check Expo Router's focus management.
+    // For now, we assume the cleanup function handles blur/unmount.
+
+    // Example focus listener (replace with actual implementation if needed):
+    // const unsubscribeFocus = router.addListener?.('focus', () => { ... });
+    // const unsubscribeBlur = router.addListener?.('blur', () => { ... });
+
+    // Assuming default behavior: pause video on unmount (blur simulation)
+    return () => { // Cleanup function
+      console.log('[ReelsScreen] Cleanup triggered (potential blur/unmount). No longer pausing video here.');
+    };
+  }, [activeVideoIndexState, isCurrentVideoPlaying, reels, setReelIsPlaying, router]); // Ensure correct dependencies
+
+  // Callback for FlatList viewability changes
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
