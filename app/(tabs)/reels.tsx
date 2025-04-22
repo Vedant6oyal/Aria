@@ -406,11 +406,9 @@ export default function ReelsScreen() {
           
           // Update the context
           setCurrentReel(contextReel);
-          // Start playback if the context wasn't already playing
-          if (!isReelPlaying) {
-            console.log('Context was not playing, calling toggleReelPlayPause');
-            toggleReelPlayPause();
-          }
+          // Always attempt to start playback when navigating explicitly to a song
+          console.log('Context state before toggle:', isReelPlaying, '. Calling toggleReelPlayPause to ensure playback.');
+          toggleReelPlayPause();
 
           // Update playback states
           setIsCurrentVideoPlaying(true);
