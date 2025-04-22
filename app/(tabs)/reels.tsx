@@ -383,7 +383,7 @@ export default function ReelsScreen() {
           // Scroll to the found index in the Liked FlatList
           if (flatListRef.current) {
             console.log(`Scrolling FlatList to index: ${songIndex}`);
-            flatListRef.current.scrollToIndex({ index: songIndex, animated: true });
+            flatListRef.current.scrollToIndex({ index: songIndex, animated: false });
           }
 
           // Update the active index states with the found index
