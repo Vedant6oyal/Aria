@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, FlatList, StatusBar, Platform, Animated, Image } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, FlatList, StatusBar, Platform, Animated, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -155,8 +155,30 @@ export default function LibraryScreen() {
         <ThemedText style={styles.songTitle}>{item.title}</ThemedText>
         <ThemedText style={styles.songArtist}>{item.creator}</ThemedText>
       </View>
-      <TouchableOpacity onPress={() => { /* Handle like/unlike */ }}>
-        <MaterialCommunityIcons name="heart" size={24} color="red" />
+      <TouchableOpacity 
+        style={styles.menuButton}
+        onPress={(e) => {
+          // Stop propagation to prevent navigating to the song
+          e.stopPropagation();
+          
+          // Show options menu
+          Alert.alert(
+            `${item.title}`,
+            `by ${item.creator}`,
+            [
+              {
+                text: 'Remove from Library',
+                onPress: () => console.log(`Remove ${item.title} from library`),
+                style: 'destructive'
+              },
+              {
+                text: 'Cancel',
+                style: 'cancel'
+              }
+            ]
+          );
+        }}>
+        <MaterialCommunityIcons name="dots-horizontal" size={22} color="#6B7280" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -181,12 +203,12 @@ export default function LibraryScreen() {
       
       <View style={styles.filterContainer}>
         <TouchableOpacity style={styles.filterButton}>
-          <MaterialCommunityIcons name="sort" size={16} color={colors.text} />
+          <MaterialCommunityIcons name="sort" size={16} color="#6B7280" />
           <ThemedText style={styles.filterText}>Recent</ThemedText>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.filterButton}>
-          <MaterialCommunityIcons name="filter-variant" size={16} color={colors.text} />
+          <MaterialCommunityIcons name="filter-variant" size={16} color="#6B7280" />
           <ThemedText style={styles.filterText}>Filter</ThemedText>
         </TouchableOpacity>
       </View>
@@ -201,7 +223,7 @@ export default function LibraryScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: '#F0F4F8' }]}>
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
       
       {/* Animated Header */}
@@ -214,11 +236,13 @@ export default function LibraryScreen() {
           }
         ]}
       >
-        <LinearGradient
-          colors={[colors.tint, shadeColor(colors.tint, -20)]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.headerGradient}
+        <View
+          style={[
+            styles.headerGradient,
+            {
+              backgroundColor: '#7EB6FF',
+            }
+          ]}
         >
           <View style={styles.headerContent}>
             <MaterialCommunityIcons 
@@ -227,12 +251,10 @@ export default function LibraryScreen() {
               color="#FFFFFF" 
               style={styles.headerIcon} 
             />
-            <ThemedText style={styles.mainHeaderTitle}>Your Library</ThemedText>
-            <Animated.View style={{ opacity: subHeaderOpacity }}>
-              <ThemedText style={styles.subHeaderTitle}>Liked Songs</ThemedText>
-            </Animated.View>
+            <ThemedText style={styles.mainHeaderTitle}>Liked Songs</ThemedText>
+            
           </View>
-        </LinearGradient>
+        </View>
       </Animated.View>
       
       <FlatList
@@ -252,6 +274,7 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    
   },
   header: {
     position: 'absolute',
@@ -303,10 +326,12 @@ const styles = StyleSheet.create({
   statCount: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#4A6FA5',
   },
   statLabel: {
     fontSize: 12,
-    opacity: 0.7,
+    color: '#6B7280',
+    opacity: 1,
     marginTop: 4,
   },
   filterContainer: {
@@ -317,7 +342,7 @@ const styles = StyleSheet.create({
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: 'rgba(126, 182, 255, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -325,6 +350,7 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 14,
     marginLeft: 6,
+    color: '#4A6FA5',
   },
   songItem: {
     flexDirection: 'row',
@@ -333,7 +359,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.02)',
+    backgroundColor: '#E6F0FF',
+    borderWidth: 1,
+    borderColor: 'rgba(208, 213, 221, 0.8)',
   },
   songImage: {
     width: 44,
@@ -349,9 +377,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
+    color: '#4A6FA5',
   },
   songArtist: {
     fontSize: 14,
-    opacity: 0.7,
+    color: '#6B7280',
+  },
+  menuButton: {
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

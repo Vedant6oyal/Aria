@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { View, StyleSheet, Image, Animated, Text } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, StyleSheet, Image, Animated, Text, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface SplashScreenProps {
@@ -53,7 +52,7 @@ export default function SplashScreen({ onAnimationComplete }: SplashScreenProps)
       setTimeout(() => {
         console.log('DEBUG - Calling onAnimationComplete now');
         onAnimationComplete();
-      }, 500);
+      }, 5000);
     });
     
     // Force completion after a timeout as a fallback
@@ -69,33 +68,39 @@ export default function SplashScreen({ onAnimationComplete }: SplashScreenProps)
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#4c0668', '#9921e8', '#5643fd']}
+      <ImageBackground
+        source={require('../assets/images/Gratitude2.png')}
         style={styles.background}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        resizeMode="cover"
       >
-        <Animated.View
-          style={[
-            styles.contentContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ scale: scaleAnim }],
-            },
-          ]}
-        >
-          <Animated.View style={{ opacity: iconFadeAnim }}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="musical-notes" size={60} color="#ffffff" />
-            </View>
+        <View style={styles.overlay}>
+          <Animated.View
+            style={[
+              styles.contentContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ scale: scaleAnim }],
+                position: 'absolute',
+                bottom: 30,
+                left: 0,
+                right: 0,
+              },
+              // Can you make this animated view at the bottom of the screen
+            ]}
+          >
+            <Animated.View style={{ opacity: iconFadeAnim }}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="musical-notes" size={60} color="#ffffff" />
+              </View>
+            </Animated.View>
+            
+            <Animated.View style={{ opacity: titleFadeAnim }}>
+              <Text style={styles.title}>ARIA</Text>
+              <Text style={styles.subtitle}>Transform Your Brain</Text>
+            </Animated.View>
           </Animated.View>
-          
-          <Animated.View style={{ opacity: titleFadeAnim }}>
-            <Text style={styles.title}>ARIA</Text>
-            <Text style={styles.subtitle}>Your music, reimagined</Text>
-          </Animated.View>
-        </Animated.View>
-      </LinearGradient>
+        </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -109,8 +114,16 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     zIndex: 10,
+    backgroundColor: '#FEF1CC',
   },
   background: {
+    flex: 1,
+    width: '100%', 
+    height: '70%', 
+    alignSelf: 'center', // Center the image horizontally
+    justifyContent: 'flex-end', // Center the image vertically
+  },
+  overlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -123,7 +136,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(13, 13, 13, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 30,
@@ -131,14 +144,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: 'rgba(13, 13, 13, 0.8)',
     letterSpacing: 4,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 20,
+    color: 'rgba(13, 13, 13, 0.8)',
     marginTop: 8,
     textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
