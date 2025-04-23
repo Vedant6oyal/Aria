@@ -76,7 +76,7 @@ const convertLibrarySongsToVideoReels = (songs: LibrarySong[]): VideoReel[] => {
     id: song.id,
     title: song.title,
     artist: song.creator,
-    thumbnailUrl: song.thumbnailUrl,
+    artwork: song.thumbnailUrl,
     videoUrl: song.videoUrl, // Assuming videoUrl is compatible
     duration: song.duration,
     likes: song.likes,
@@ -485,7 +485,7 @@ export default function ReelsScreen() {
     hideInfoTimeoutRef.current = setTimeout(() => {
       hideInfoSection();
     }, 3000);
-  }, [resetInfoTimer, showInfoSection, hideInfoSection]);
+  }, [ showInfoSection, hideInfoSection]);
 
   // Initialize the auto-hide timer
   useEffect(() => {

@@ -29,6 +29,7 @@ export interface UserData {
   ageRange: string;
   musicPreference: string;
   gender: string;
+  interests: string[];
 }
 
 const { width, height } = Dimensions.get('window');
@@ -39,12 +40,13 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     name: '',
     ageRange: '',
     musicPreference: '',
-    gender: ''
+    gender: '',
+    interests: []
   });
   const [notificationDenied, setNotificationDenied] = useState(false);
 
   const handleNext = () => {
-    if (currentStep < 5) {
+    if (currentStep < 6) {
       setCurrentStep(currentStep + 1);
     } else {
       handleComplete();
@@ -59,7 +61,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
   // Skip only skips the current question/step
   const handleSkip = () => {
-    if (currentStep < 5) {
+    if (currentStep < 6) {
       // Move to the next step without saving data for the current step
       setCurrentStep(currentStep + 1);
     } else {
@@ -119,11 +121,25 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     );
   };
 
-  const updateUserData = (key: keyof UserData, value: string) => {
+  const updateUserData = (key: keyof UserData, value: string | string[]) => {
     setUserData({
       ...userData,
       [key]: value
     });
+  };
+
+  const toggleInterest = (interest: string) => {
+    let updatedInterests: string[];
+    
+    if (userData.interests.includes(interest)) {
+      // Remove the interest if it's already selected
+      updatedInterests = userData.interests.filter(item => item !== interest);
+    } else {
+      // Add the interest if it's not already selected
+      updatedInterests = [...userData.interests, interest];
+    }
+    
+    updateUserData('interests', updatedInterests);
   };
 
   const renderOptionButton = (option: string, value: string, dataKey: keyof UserData) => {
@@ -140,9 +156,24 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     );
   };
 
+  const renderInterestButton = (interest: string) => {
+    const isSelected = userData.interests.includes(interest);
+    
+    return (
+      <TouchableOpacity 
+        style={[styles.interestButton, isSelected && styles.selectedInterest]} 
+        onPress={() => toggleInterest(interest)}
+      >
+        <Text style={[styles.interestText, isSelected && styles.selectedInterestText]}>
+          {interest}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   const renderStep = () => {
-    // If notification permission was denied and we're on step 5, show the follow-up screen
-    if (currentStep === 5 && notificationDenied) {
+    // If notification permission was denied and we're on step 6, show the follow-up screen
+    if (currentStep === 6 && notificationDenied) {
       return renderNotificationFollowUp();
     }
 
@@ -240,8 +271,44 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             )}
           </>
         );
-
+      
       case 5:
+        return (
+          <>
+            <Text style={styles.questionText}>Select your interests</Text>
+            <Text style={styles.subtitleText}>Choose one or more</Text>
+            
+            <View style={styles.interestsContainer}>
+              {renderInterestButton('News')}
+              {renderInterestButton('Culture')}
+              {renderInterestButton('Business')}
+              {renderInterestButton('Mental health')}
+              {renderInterestButton('Family')}
+              {renderInterestButton('Pop')}
+              {renderInterestButton('Education')}
+              {renderInterestButton('Health')}
+              {renderInterestButton('Art')}
+              {renderInterestButton('Comedy')}
+              {renderInterestButton('Society')}
+              {renderInterestButton('History')}
+              {renderInterestButton('Sport')}
+              {renderInterestButton('Science')}
+              {renderInterestButton('Interviews')}
+              {renderInterestButton('Movies')}
+              {renderInterestButton('True crime stories')}
+            </View>
+            
+            <TouchableOpacity 
+              style={[styles.continueButton, userData.interests.length === 0 && styles.disabledButton]} 
+              onPress={handleNext}
+              disabled={userData.interests.length === 0}
+            >
+              <Text style={styles.continueText}>Continue</Text>
+            </TouchableOpacity>
+          </>
+        );
+
+      case 6:
         return (
           <View style={styles.notificationContainer}>
             <Ionicons name="notifications" size={60} color="#344054" style={styles.notificationIcon} />
@@ -312,12 +379,15 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
   // Dynamically show "Skip" text based on whether it's the last step
   const renderSkipText = () => {
-    if (currentStep === 5) return "Skip";
-    return currentStep < 4 ? "Skip" : "Skip All";
+    // Don't show "Skip" text on the last step (notifications)
+    if (currentStep === 6) {
+      return '';
+    }
+    return currentStep < 5 ? "Skip" : "Skip All";
   };
 
   // Don't show back button on notification screens
-  const showBackButton = currentStep > 1 && currentStep !== 5;
+  const showBackButton = currentStep > 1 && currentStep !== 6;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -336,7 +406,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
             )}
           </TouchableOpacity>
           
-          {currentStep !== 5 && (
+          {currentStep !== 6 && (
             <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
               <Text style={styles.skipText}>{renderSkipText()}</Text>
             </TouchableOpacity>
@@ -344,7 +414,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         </View>
         
         <View style={styles.progressBar}>
-          {[1, 2, 3, 4, 5].map(step => (
+          {[1, 2, 3, 4, 5, 6].map(step => (
             <View 
               key={step} 
               style={[
@@ -523,5 +593,33 @@ const styles = StyleSheet.create({
   bellHandImage: {
     width: 120,
     height: 120,
-  }
+  },
+  interestsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  interestButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: '#D0D5DD',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 6,
+    marginBottom: 12,
+  },
+  selectedInterest: {
+    backgroundColor: '#7F56D9',
+    borderColor: '#7F56D9',
+  },
+  interestText: {
+    color: '#344054',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  selectedInterestText: {
+    color: '#FFFFFF',
+  },
 });

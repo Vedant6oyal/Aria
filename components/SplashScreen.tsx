@@ -95,7 +95,7 @@ export default function SplashScreen({ onAnimationComplete }: SplashScreenProps)
             </Animated.View>
             
             <Animated.View style={{ opacity: titleFadeAnim }}>
-              <Text style={styles.title}>ARIA</Text>
+              <Text style={styles.title}>RETUNE</Text>
               <Text style={styles.subtitle}>Transform Your Brain</Text>
             </Animated.View>
           </Animated.View>
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(13, 13, 13, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 30,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: 'rgba(13, 13, 13, 0.8)',
+    color: '#ffffff',
     letterSpacing: 4,
     textAlign: 'center',
   },
