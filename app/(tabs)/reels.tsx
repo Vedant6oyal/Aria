@@ -781,7 +781,7 @@ export default function ReelsScreen() {
       
       <TouchableOpacity 
         style={[styles.actionButton, styles.musicDisc]}
-        onPress={() => addToPlayer(item)}
+       
       >
         <Animated.View 
           style={{

@@ -178,7 +178,7 @@ export default function LibraryScreen() {
             ]
           );
         }}>
-        <MaterialCommunityIcons name="dots-horizontal" size={22} color="#6B7280" />
+        <MaterialCommunityIcons name="dots-horizontal" size={22} color="rgba(107, 114, 128, 1)" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -203,12 +203,12 @@ export default function LibraryScreen() {
       
       <View style={styles.filterContainer}>
         <TouchableOpacity style={styles.filterButton}>
-          <MaterialCommunityIcons name="sort" size={16} color="#6B7280" />
+          <MaterialCommunityIcons name="sort" size={16} color="rgba(107, 114, 128, 1)" />
           <ThemedText style={styles.filterText}>Recent</ThemedText>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.filterButton}>
-          <MaterialCommunityIcons name="filter-variant" size={16} color="#6B7280" />
+          <MaterialCommunityIcons name="filter-variant" size={16} color="rgba(107, 114, 128, 1)" />
           <ThemedText style={styles.filterText}>Filter</ThemedText>
         </TouchableOpacity>
       </View>
@@ -223,7 +223,7 @@ export default function LibraryScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: '#F0F4F8' }]}>
+    <View style={[styles.container, { backgroundColor: 'rgba(237, 227, 249, 1)' }]}>
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
       
       {/* Animated Header */}
@@ -240,7 +240,7 @@ export default function LibraryScreen() {
           style={[
             styles.headerGradient,
             {
-              backgroundColor: '#7EB6FF',
+              backgroundColor: 'rgba(156, 138, 222, 1)',
             }
           ]}
         >
@@ -248,7 +248,7 @@ export default function LibraryScreen() {
             <MaterialCommunityIcons 
               name="music-box-multiple" 
               size={28} 
-              color="#FFFFFF" 
+              color="rgba(61, 44, 141, 1)" 
               style={styles.headerIcon} 
             />
             <ThemedText style={styles.mainHeaderTitle}>Liked Songs</ThemedText>
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   mainHeaderTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: 'rgba(75, 88, 102, 1)',
     textAlign: 'center',
   },
   subHeaderTitle: {
@@ -326,11 +326,11 @@ const styles = StyleSheet.create({
   statCount: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#4A6FA5',
+    color: 'rgba(75, 88, 102, 1)',
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: 'rgba(75, 88, 102, 1)',
     opacity: 1,
     marginTop: 4,
   },
@@ -342,26 +342,30 @@ const styles = StyleSheet.create({
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(126, 182, 255, 0.15)',
+    backgroundColor: 'rgba(237, 227, 249, 1)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(75, 88, 102, 1)',
   },
   filterText: {
     fontSize: 14,
     marginLeft: 6,
-    color: '#4A6FA5',
+    color: 'rgba(75, 88, 102, 1)',
   },
   songItem: {
     flexDirection: 'row',
+    alignSelf: 'center',
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 8,
     borderRadius: 12,
-    backgroundColor: '#E6F0FF',
-    borderWidth: 1,
-    borderColor: 'rgba(208, 213, 221, 0.8)',
+    backgroundColor: 'rgba(237, 227, 249, 1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(107, 76, 154, 1)',
+    width: '95%',
   },
   songImage: {
     width: 44,
@@ -377,11 +381,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
-    color: '#4A6FA5',
+    color: 'rgba(95, 59, 140, 1)',
+    fontFamily: 'Poppins',
+    //font-family: "Poppins", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
   },
   songArtist: {
     fontSize: 14,
-    color: '#6B7280',
+    color: 'rgba(107, 114, 128, 1)',
   },
   menuButton: {
     padding: 8,

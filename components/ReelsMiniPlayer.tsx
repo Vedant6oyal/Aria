@@ -86,14 +86,6 @@ export function ReelsMiniPlayer({
             style={styles.thumbnail} 
             resizeMode="cover"
           />
-          {/* Play indicator overlay */}
-          <View style={styles.thumbnailOverlay}>
-            <MaterialCommunityIcons 
-              name="play" 
-              size={20} 
-              color="#ffffff" 
-            />
-          </View>
         </View>
         
         {/* Reel Info */}
