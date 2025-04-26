@@ -155,31 +155,43 @@ export default function LibraryScreen() {
         <ThemedText style={styles.songTitle}>{item.title}</ThemedText>
         <ThemedText style={styles.songArtist}>{item.creator}</ThemedText>
       </View>
-      <TouchableOpacity 
-        style={styles.menuButton}
-        onPress={(e) => {
-          // Stop propagation to prevent navigating to the song
-          e.stopPropagation();
-          
-          // Show options menu
-          Alert.alert(
-            `${item.title}`,
-            `by ${item.creator}`,
-            [
-              {
-                text: 'Remove from Library',
-                onPress: () => console.log(`Remove ${item.title} from library`),
-                style: 'destructive'
-              },
-              {
-                text: 'Cancel',
-                style: 'cancel'
-              }
-            ]
-          );
-        }}>
-        <MaterialCommunityIcons name="dots-horizontal" size={22} color="rgba(107, 114, 128, 1)" />
-      </TouchableOpacity>
+      <View style={styles.actionButtonsContainer}>
+        <View 
+          style={styles.actionButton}
+         
+        >
+          <MaterialCommunityIcons 
+            name="play-circle-outline" 
+            size={22} 
+            color="rgba(75, 88, 102, 1)" /* Darker icon color */
+          />
+        </View>
+        <TouchableOpacity 
+          style={styles.actionButton} // Use consistent styling
+          onPress={(e) => {
+            // Stop propagation to prevent navigating to the song
+            e.stopPropagation();
+            
+            // Show options menu (existing logic)
+            Alert.alert(
+              `${item.title}`,
+              `by ${item.creator}`,
+              [
+                {
+                  text: 'Remove from Library',
+                  onPress: () => console.log(`Remove ${item.title} from library`),
+                  style: 'destructive'
+                },
+                {
+                  text: 'Cancel',
+                  style: 'cancel'
+                }
+              ]
+            );
+          }}>
+          <MaterialCommunityIcons name="dots-horizontal" size={22} color="rgba(75, 88, 102, 1)" />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -362,9 +374,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(237, 227, 249, 1)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(107, 76, 154, 1)',
+    backgroundColor: 'rgb(193, 176, 255)',
+   
     width: '95%',
   },
   songImage: {
@@ -390,9 +401,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(107, 114, 128, 1)',
   },
-  menuButton: {
-    padding: 8,
-    justifyContent: 'center',
+  actionButtonsContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 'auto', // Push buttons to the right
+  },
+  actionButton: {
+    padding: 8, // Consistent padding for both buttons
+    marginLeft: 4, // Add some space between buttons
   },
 });

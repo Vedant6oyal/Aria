@@ -30,6 +30,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="aria"/>
         <data android:scheme="com.vg6sense.ariamusic"/>
+        <data android:scheme="exp+aria-music"/>
       </intent-filter>
     </activity>
   </application>

@@ -11,9 +11,11 @@
     "description": "A beautiful music streaming app like Spotify",
     "primaryColor": "#1DB954",
     "ios": {
+      "bundleIdentifier": "com.vg6sense.ariamusic",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.vg6sense.ariamusic",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#121212"
