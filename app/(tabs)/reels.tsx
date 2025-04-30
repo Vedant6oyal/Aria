@@ -406,13 +406,27 @@ export default function ReelsScreen() {
           
           // Update the context
           setCurrentReel(contextReel);
-          // Always attempt to start playback when navigating explicitly to a song
-          console.log('Context state before toggle:', isReelPlaying, '. Calling toggleReelPlayPause to ensure playback.');
-          toggleReelPlayPause();
-
-          // Update playback states
-          setIsCurrentVideoPlaying(true);
-          setReelIsPlaying(true);
+          
+          // Instead of toggling, directly play the video
+          console.log('Directly starting playback for song from library');
+          const videoRef = videoRefs.current[foundReel.id];
+          if (videoRef) {
+            // Give video a moment to initialize
+            setTimeout(() => {
+              videoRef.playAsync().then(() => {
+                // Update states only after successful playback start
+                setIsCurrentVideoPlaying(true);
+                setReelIsPlaying(true);
+              }).catch(err => {
+                console.error('Error starting playback:', err);
+              });
+            }, 300);
+          } else {
+            console.log('Video ref not available yet for direct playback');
+            // Fallback to setting states directly
+            setIsCurrentVideoPlaying(true);
+            setReelIsPlaying(true);
+          }
         }, 100); // Timeout duration (adjust if needed)
 
         // Mark params as processed to prevent re-triggering
@@ -706,7 +720,7 @@ export default function ReelsScreen() {
     // Reset flag after a short delay to allow the video to update its status
     setTimeout(() => {
       setIsTogglingPlayback(false);
-    }, 300);
+    }, 800);
   };
 
   // Handle like animation

@@ -7,14 +7,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 // Define the color palette
 const palette = {
-  background: '#DDEDE6',
-  messageBubble: '#F7F0D8',
-  accentPeach: '#E8B89C',
-  primaryText: '#5D5A4D',
-  nameText: '#4A4535',
-  iconsBackground: '#F3EBD3',
-  searchBarBackground: '#FDFDFB',
-  micIcon: '#4A3C2F',
+  background: 'rgba(237, 227, 249, 1)',
+  messageBubble: 'rgba(193, 176, 255, 0.3)',
+  accentPurple: 'rgba(156, 138, 222, 1)',
+  primaryText: 'rgba(75, 88, 102, 1)',
+  secondaryText: 'rgba(107, 114, 128, 1)',
+  buttonBackground: 'rgba(61, 44, 141, 0.7)',
+  iconsBackground: 'rgba(237, 227, 249, 0.6)',
+  buttonText: '#FFFFFF',
 };
 
 interface OnboardingPopupProps {
@@ -137,7 +137,7 @@ const OnboardingPopup: React.FC<OnboardingPopupProps> = ({
   }, [isVisible]);
 
   const confettiColors = [
-    palette.accentPeach,
+    palette.accentPurple,
     palette.background,
     palette.messageBubble,
     '#9FD8CB', // Lighter mint
@@ -160,38 +160,38 @@ const OnboardingPopup: React.FC<OnboardingPopupProps> = ({
           {/* Header with Icon */}
           <View style={styles.header}>
              <View style={styles.iconContainer}>
-               <MaterialCommunityIcons name="brain" size={48} color={palette.nameText} />
+               <MaterialCommunityIcons name="brain" size={48} color={palette.primaryText} />
              </View>
-             <ThemedText type="title" style={[styles.title, { color: palette.nameText }]}>Welcome to Aria!</ThemedText>
+             <ThemedText type="title" style={[styles.title, { color: palette.primaryText }]}>Welcome to Aria!</ThemedText>
           </View>
 
           {/* Body Content */}
           <View style={styles.body}>
-             <ThemedText type="subtitle" style={[styles.subtitle, { color: palette.nameText }]}>
+             <ThemedText type="subtitle" style={[styles.subtitle, { color: palette.primaryText }]}>
                Unlock Your Potential
              </ThemedText>
-            <ThemedText style={[styles.description, { color: palette.primaryText }]}>
+            <ThemedText style={[styles.description, { color: palette.secondaryText }]}>
               Enjoy personalised gratitude songs,
             </ThemedText>
-             <ThemedText style={[styles.descriptionEmphasized, { color: palette.nameText }]}>
+             <ThemedText style={[styles.descriptionEmphasized, { color: palette.primaryText }]}>
                crafted to transform your brain.
              </ThemedText>
           </View>
 
           {/* 21-Day Challenge Progress */}
           <View style={styles.challengeContainer}>
-            <ThemedText style={[styles.challengeTitle, { color: palette.nameText }]}>
+            <ThemedText style={[styles.challengeTitle, { color: palette.primaryText }]}>
               Your 21-Day Transformation
             </ThemedText>
             <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBarBackground, { backgroundColor: 'rgba(93, 90, 77, 0.1)' }]}> 
+              <View style={[styles.progressBarBackground, { backgroundColor: 'rgba(75, 88, 102, 0.1)' }]}> 
                 <View style={[styles.progressBarFill, { 
                   width: `${progressPercent}%`,
-                  backgroundColor: palette.accentPeach
+                  backgroundColor: palette.accentPurple
                 }]} />
               </View>
               <View style={styles.streakInfo}>
-                <ThemedText style={[styles.progressText, { color: palette.primaryText }]}>
+                <ThemedText style={[styles.progressText, { color: palette.secondaryText }]}>
                   Day {currentStreakDay} / {challengeTotalDays}
                 </ThemedText>
                 {currentStreakDay > 1 && (
@@ -207,10 +207,10 @@ const OnboardingPopup: React.FC<OnboardingPopupProps> = ({
           {/* Footer Button */}
           <View style={styles.footer}>
             <TouchableOpacity 
-              style={[styles.continueButton, { backgroundColor: palette.accentPeach }]} 
+              style={[styles.continueButton, { backgroundColor: palette.buttonBackground }]} 
               onPress={onDismiss}
             >
-               <MaterialCommunityIcons name="music-note" size={24} color="#FFFFFF" style={styles.buttonIcon} />
+               <MaterialCommunityIcons name="music-note" size={24} color={palette.buttonText} style={styles.buttonIcon} />
               <Text style={styles.continueButtonText}>Begin Your Journey</Text>
             </TouchableOpacity>
           </View>
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   continueButtonText: {
-    color: '#FFFFFF',
+    color: palette.buttonText,
     fontSize: 16,
     fontWeight: '600',
   },
