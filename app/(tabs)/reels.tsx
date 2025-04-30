@@ -764,7 +764,7 @@ export default function ReelsScreen() {
         onPress={() => animateLike(index)}
       >
         <Animated.View style={{ transform: [{ scale: index === activeVideoIndexState ? likeAnimation : 1 }] }}>
-          <MaterialCommunityIcons name="heart" size={40} color="#FF5757" />
+          <MaterialCommunityIcons name="heart" size={40} color="rgba(61, 44, 141, 0.8)" />
         </Animated.View>
         <ThemedText style={styles.actionText}>{formatNumber(item.likes || 0)}</ThemedText>
       </TouchableOpacity>
@@ -809,7 +809,7 @@ export default function ReelsScreen() {
           <MaterialCommunityIcons 
             name={isCurrentVideoPlaying ? "pause-circle" : "play-circle"} 
             size={36} 
-            color="#FF5757" 
+            color="rgba(156, 138, 222, 1)" 
           />
         </TouchableOpacity>
         <View style={styles.songDetailsContainer}>
@@ -860,7 +860,7 @@ export default function ReelsScreen() {
           }}
           minimumValue={0}
           maximumValue={1}
-          minimumTrackTintColor="#FF5757"
+          minimumTrackTintColor="rgba(156, 138, 222, 1)"
           maximumTrackTintColor="rgba(255, 255, 255, 0.15)"
         />
       </View>
@@ -1203,7 +1203,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeTab: {
-    backgroundColor: 'rgba(255, 87, 87, 0.3)',
+    backgroundColor: 'rgba(156, 138, 222, 0.6)',
   },
   tabText: {
     fontSize: 16,

@@ -211,7 +211,7 @@ export default function NotificationsScreen() {
         
         {unreadCount > 0 && (
           <TouchableOpacity onPress={markAllAsRead} style={styles.markReadButton}>
-            <ThemedText style={[styles.markReadText, { color: colors.tint }]}>
+            <ThemedText style={[styles.markReadText, { color: 'rgba(156, 138, 222, 1)' }]}>
               Mark all as read
             </ThemedText>
           </TouchableOpacity>

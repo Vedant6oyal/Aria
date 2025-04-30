@@ -392,8 +392,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#f6e1ea', '#fdeef4', '#f5e6f0']}
-        style={styles.gradient}
+colors={['rgba(237, 227, 249, 1)', 'rgba(217, 207, 239, 1)', 'rgba(237, 227, 249, 1)']}        style={styles.gradient}
       >
         <View style={styles.header}>
           <TouchableOpacity 
@@ -457,7 +456,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   skipText: {
-    color: '#344054',
+    color: 'rgba(75, 88, 102, 1)',
     fontSize: 16,
     fontWeight: '500',
   },
@@ -470,11 +469,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(52, 64, 84, 0.2)',
+    backgroundColor: 'rgba(75, 88, 102, 0.2)',
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#344054',
+    backgroundColor: 'rgba(61, 44, 141, 1)',
   },
   content: {
     flex: 1,
@@ -484,13 +483,13 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#344054',
+    color: 'rgba(75, 88, 102, 1)',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitleText: {
     fontSize: 16,
-    color: '#5D6B98',
+    color: 'rgba(107, 114, 128, 1)',
     textAlign: 'center',
     marginBottom: 32,
   },
@@ -498,7 +497,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: 'rgba(237, 227, 249, 1)',
     borderWidth: 1,
     borderColor: 'rgba(208, 213, 221, 0.8)',
     borderRadius: 12,
@@ -506,12 +505,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   selectedOption: {
-    borderColor: '#7F56D9',
-    backgroundColor: 'rgba(127, 86, 217, 0.08)',
+    borderColor: 'rgba(156, 138, 222, 1)',
+    backgroundColor: 'rgba(193, 176, 255, 0.3)',
   },
   optionText: {
     fontSize: 16,
-    color: '#344054',
+    color: 'rgba(75, 88, 102, 1)',
     fontWeight: '500',
   },
   radioButton: {
@@ -519,33 +518,33 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#D0D5DD',
+    borderColor: 'rgba(107, 114, 128, 0.5)',
   },
   radioSelected: {
-    borderColor: '#7F56D9',
-    backgroundColor: '#7F56D9',
+    borderColor: 'rgba(156, 138, 222, 1)',
+    backgroundColor: 'rgba(61, 44, 141, 0.7)',
   },
   inputContainer: {
     marginBottom: 24,
   },
   textInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: 'rgba(237, 227, 249, 0.6)',
     borderWidth: 1,
     borderColor: 'rgba(208, 213, 221, 0.8)',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#344054',
+    color: 'rgba(75, 88, 102, 1)',
   },
   continueButton: {
-    backgroundColor: '#344054',
+    backgroundColor: 'rgba(61, 44, 141, 0.8)',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginTop: 16,
   },
   disabledButton: {
-    backgroundColor: '#D0D5DD',
+    backgroundColor: 'rgba(156, 138, 222, 0.5)',
   },
   continueText: {
     color: '#FFFFFF',
@@ -565,7 +564,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   allowButton: {
-    backgroundColor: '#344054',
+    backgroundColor: 'rgba(61, 44, 141, 0.7)',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -581,7 +580,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   skipNotificationText: {
-    color: '#667085',
+    color: 'rgba(107, 114, 128, 1)',
     fontSize: 14,
   },
   illustrationContainer: {
@@ -605,17 +604,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 100,
     borderWidth: 1,
-    borderColor: '#D0D5DD',
-    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(107, 114, 128, 0.5)',
+    backgroundColor: 'rgba(237, 227, 249, 0.6)',
     marginHorizontal: 6,
     marginBottom: 12,
   },
   selectedInterest: {
-    backgroundColor: '#7F56D9',
-    borderColor: '#7F56D9',
+    backgroundColor: 'rgba(61, 44, 141, 0.7)',
+    borderColor: 'rgba(156, 138, 222, 1)',
   },
   interestText: {
-    color: '#344054',
+    color: 'rgba(75, 88, 102, 1)',
     fontSize: 16,
     fontWeight: '500',
   },
