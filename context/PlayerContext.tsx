@@ -55,6 +55,26 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   
   const router = useRouter();
 
+  // Configure audio to play in background when component mounts
+  useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,  // Enable background playback
+          playsInSilentModeIOS: true,     // Play even when device is on silent
+          shouldDuckAndroid: true,        // Lower volume for notifications
+          playThroughEarpieceAndroid: false
+        });
+        console.log('Audio mode configured for background playback');
+      } catch (error) {
+        console.error('Failed to set audio mode:', error);
+      }
+    };
+    
+    setupAudio();
+  }, []);
+
   // Toggle play/pause
   const togglePlayPause = async () => {
     console.log("Toggle play/pause called, current state:", isPlaying, "playbackInstance:", !!playbackInstance);

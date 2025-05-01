@@ -12,7 +12,12 @@
     "primaryColor": "#1DB954",
     "ios": {
       "bundleIdentifier": "com.vg6sense.ariamusic",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      }
     },
     "android": {
       "package": "com.vg6sense.ariamusic",
@@ -37,7 +42,14 @@
           "backgroundColor": "#121212"
         }
       ],
-      "expo-video"
+      "expo-video",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "backgroundMode": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
