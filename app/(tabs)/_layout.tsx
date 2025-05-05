@@ -72,7 +72,8 @@ const AnimatedTab = ({
       ]}
     >
       <Animated.View style={styles.tabIconContainer} onTouchEnd={onPress}>
-        {icon}
+        {React.isValidElement(icon) ? icon : null}
+        
         <Text
           style={[
             styles.tabLabel,
@@ -115,13 +116,13 @@ export default function TabLayout() {
   function TabBar({ state, navigation }) {
     return (
       <BlurView
-        intensity={30} // Lower intensity for more subtle effect
-        tint="dark" // Always dark tint to match design
+        intensity={30} 
+        tint="dark" 
         style={[
           styles.tabBar,
           { 
             paddingBottom: insets.bottom,
-            bottom: 0, // Always at bottom
+            bottom: 0, 
           }
         ]}
       >
@@ -132,11 +133,13 @@ export default function TabLayout() {
             onPress={() => navigation.navigate('reels')}
             label="Reels"
             icon={
-              <MaterialCommunityIcons
-                name="video"
-                size={22} // Slightly smaller
-                color={state.index === 0 ? '#fff' : 'rgba(255,255,255,0.7)'}
-              />
+              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <MaterialCommunityIcons
+                  name="video"
+                  size={22} 
+                  color={state.index === 0 ? '#fff' : 'rgba(255,255,255,0.7)'}
+                />
+              </View>
             }
           />
           
@@ -146,25 +149,29 @@ export default function TabLayout() {
             onPress={() => navigation.navigate('library')}
             label="Library"
             icon={
-              <MaterialCommunityIcons
-                name="bookshelf"
-                size={22}
-                color={state.index === 1 ? '#fff' : 'rgba(255,255,255,0.7)'}
-              />
+              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <MaterialCommunityIcons
+                  name="bookshelf"
+                  size={22}
+                  color={state.index === 1 ? '#fff' : 'rgba(255,255,255,0.7)'}
+                />
+              </View>
             }
           />
           
-          {/* Notifications Tab (Replaced Profile) */}
+          {/* Profile Tab */}
           <AnimatedTab
             isFocused={state.index === 2}
-            onPress={() => navigation.navigate('notifications')}
-            label="Notifications"
+            onPress={() => navigation.navigate('profile')}
+            label="Profile"
             icon={
-              <MaterialCommunityIcons
-                name="bell-outline" // Changed icon
-                size={22}
-                color={state.index === 2 ? '#fff' : 'rgba(255,255,255,0.7)'}
-              />
+              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <MaterialCommunityIcons
+                  name="account-circle-outline"
+                  size={22}
+                  color={state.index === 2 ? '#fff' : 'rgba(255,255,255,0.7)'}
+                />
+              </View>
             }
           />
         </View>
@@ -194,9 +201,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="notifications" // Changed screen name
+          name="profile"
           options={{
-            title: 'Notifications', // Changed title
+            title: 'Profile',
           }}
         />
         
@@ -241,8 +248,8 @@ export default function TabLayout() {
           style={[
             styles.miniPlayerContainer,
             {
-              bottom: TAB_BAR_HEIGHT , // Position above tab bar with insets
-              zIndex: 1 // Ensure it's above other content
+              bottom: TAB_BAR_HEIGHT , 
+              zIndex: 1 
             }
           ]}
         >
@@ -255,14 +262,11 @@ export default function TabLayout() {
               toggleReelPlayPause();
             }}
             onPress={() => {
-              // Navigate to full reel view
               router.push('/reels');
             }}
           />
         </View>
       )}
-
-      {/* Removed MiniPlayer - now using only ReelsMiniPlayer */}
     </View>
   );
 }
@@ -283,8 +287,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: TAB_BAR_HEIGHT,
-    backgroundColor: 'rgba(60, 60, 60, 0.5)', // Darker semi-transparent background
-    borderTopWidth: 0, // No border
+    backgroundColor: 'rgba(60, 60, 60, 0.5)', 
+    borderTopWidth: 0, 
     overflow: 'hidden',
   },
   tabBarContent: {

@@ -777,15 +777,10 @@ export default function ReelsScreen() {
         style={styles.actionButton}
         onPress={() => animateLike(index)}
       >
-        <Animated.View style={{ transform: [{ scale: index === activeVideoIndexState ? likeAnimation : 1 }] }}>
-          <MaterialCommunityIcons name="heart" size={40} color="rgba(61, 44, 141, 0.8)" />
+        <Animated.View style={{ transform: [{ scale: likeAnimation }] }}>
+          <MaterialCommunityIcons name="heart" size={40} color="rgb(244, 63, 94)" />
         </Animated.View>
         <ThemedText style={styles.actionText}>{formatNumber(item.likes || 0)}</ThemedText>
-      </TouchableOpacity>
-      
-      <TouchableOpacity style={styles.actionButton}>
-        <MaterialCommunityIcons name="comment-text-outline" size={40} color="#FFFFFF" />
-        <ThemedText style={styles.actionText}>{formatNumber(item.comments || 0)}</ThemedText>
       </TouchableOpacity>
       
       <TouchableOpacity style={styles.actionButton}>
@@ -823,7 +818,7 @@ export default function ReelsScreen() {
           <MaterialCommunityIcons 
             name={isCurrentVideoPlaying ? "pause-circle" : "play-circle"} 
             size={36} 
-            color="rgba(156, 138, 222, 1)" 
+            color="rgb(244, 63, 94)" 
           />
         </TouchableOpacity>
         <View style={styles.songDetailsContainer}>
@@ -874,7 +869,7 @@ export default function ReelsScreen() {
           }}
           minimumValue={0}
           maximumValue={1}
-          minimumTrackTintColor="rgba(156, 138, 222, 1)"
+          minimumTrackTintColor="rgb(244, 63, 94)"
           maximumTrackTintColor="rgba(255, 255, 255, 0.15)"
         />
       </View>
@@ -922,11 +917,10 @@ export default function ReelsScreen() {
             onPlaybackStatusUpdate={(status) => onPlaybackStatusUpdate(status, index)}
           />
           
-          {/* Gradient overlay for text visibility */}
+          {/* Gradient overlay */}
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.8)']}
+            colors={['transparent', 'rgba(0,0,0,0.8)']}
             style={styles.gradient}
-            pointerEvents="none"
           />
           
           {/* Heart animation */}
@@ -939,7 +933,7 @@ export default function ReelsScreen() {
                 transform: [{ scale: heartAnim }],
               }}
             >
-              <MaterialCommunityIcons name="heart" size={40} color="#FF5757" />
+              <MaterialCommunityIcons name="heart" size={40} color="rgb(244, 63, 94)" />
             </Animated.View>
           )}
         </TouchableOpacity>
@@ -1217,7 +1211,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeTab: {
-    backgroundColor: 'rgba(156, 138, 222, 0.6)',
+    backgroundColor: 'rgba(244, 63, 94, 0.6)',
   },
   tabText: {
     fontSize: 16,
@@ -1353,15 +1347,11 @@ const styles = StyleSheet.create({
     height: 24,
     marginTop: -8,
   },
-  progressTrack: {
-    height: 3,
-    borderRadius: 1.5,
-  },
   progressThumb: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FF5757',
+    backgroundColor: 'rgb(244, 63, 94)',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -1371,7 +1361,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: 'rgb(255, 228, 230)',
   },
   tagsContainer: {
     flexDirection: 'row',

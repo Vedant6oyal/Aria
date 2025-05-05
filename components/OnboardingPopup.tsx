@@ -7,14 +7,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 // Define the color palette
 const palette = {
-  background: 'rgba(237, 227, 249, 1)',
-  messageBubble: 'rgba(193, 176, 255, 0.3)',
-  accentPurple: 'rgba(156, 138, 222, 1)',
-  primaryText: 'rgba(75, 88, 102, 1)',
-  secondaryText: 'rgba(107, 114, 128, 1)',
-  buttonBackground: 'rgba(61, 44, 141, 0.7)',
-  iconsBackground: 'rgba(237, 227, 249, 0.6)',
-  buttonText: '#FFFFFF',
+  background: 'rgb(255, 251, 235)', // amber-50
+  messageBubble: 'rgb(254, 243, 199)', // amber-100
+  accentPeach: 'rgb(244, 63, 94)', // rose-500
+  primaryText: 'rgb(136, 19, 55)', // rose-900
+  nameText: 'rgb(190, 18, 60)', // rose-700
+  iconsBackground: 'rgb(253, 230, 138)', // amber-200
+  searchBarBackground: 'rgba(255, 255, 255, 0.6)', // white with 60% opacity
+  micIcon: 'rgb(225, 29, 72)', // rose-600
 };
 
 interface OnboardingPopupProps {
@@ -137,11 +137,11 @@ const OnboardingPopup: React.FC<OnboardingPopupProps> = ({
   }, [isVisible]);
 
   const confettiColors = [
-    palette.accentPurple,
-    palette.background,
-    palette.messageBubble,
-    '#9FD8CB', // Lighter mint
-    '#FFD9C0', // Lighter peach
+    palette.accentPeach,
+    'rgb(251, 113, 133)', // rose-400
+    'rgb(253, 164, 175)', // rose-300
+    'rgb(255, 228, 230)', // rose-100
+    'rgb(254, 205, 211)', // rose-200
   ];
 
   return (
@@ -156,49 +156,67 @@ const OnboardingPopup: React.FC<OnboardingPopupProps> = ({
           <Confetti colors={confettiColors} count={80} duration={4000} />
         )}
         
-        <View style={[styles.modalContent, { backgroundColor: palette.background }]}>
+        <LinearGradient
+          colors={['rgb(255, 251, 235)', 'rgb(255, 228, 230)']} // amber-50 to rose-100
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.modalContent}
+        >
           {/* Header with Icon */}
           <View style={styles.header}>
-             <View style={styles.iconContainer}>
-               <MaterialCommunityIcons name="brain" size={48} color={palette.primaryText} />
-             </View>
-             <ThemedText type="title" style={[styles.title, { color: palette.primaryText }]}>Welcome to Aria!</ThemedText>
+             <LinearGradient
+               colors={['rgb(254, 243, 199)', 'rgb(253, 230, 138)']} // amber-100 to amber-200
+               style={styles.iconContainer}
+               start={{ x: 0, y: 0 }}
+               end={{ x: 1, y: 1 }}
+               borderRadius={40}
+             >
+               <MaterialCommunityIcons name="brain" size={48} color={palette.nameText} />
+             </LinearGradient>
+             <ThemedText type="title" style={[styles.title, { color: palette.nameText }]}>Welcome to Aria!</ThemedText>
           </View>
 
           {/* Body Content */}
           <View style={styles.body}>
-             <ThemedText type="subtitle" style={[styles.subtitle, { color: palette.primaryText }]}>
+             <ThemedText type="subtitle" style={[styles.subtitle, { color: palette.nameText }]}>
                Unlock Your Potential
              </ThemedText>
-            <ThemedText style={[styles.description, { color: palette.secondaryText }]}>
+            <ThemedText style={[styles.description, { color: palette.primaryText }]}>
               Enjoy personalised gratitude songs,
             </ThemedText>
-             <ThemedText style={[styles.descriptionEmphasized, { color: palette.primaryText }]}>
+             <ThemedText style={[styles.descriptionEmphasized, { color: palette.nameText }]}>
                crafted to transform your brain.
              </ThemedText>
           </View>
 
           {/* 21-Day Challenge Progress */}
-          <View style={styles.challengeContainer}>
-            <ThemedText style={[styles.challengeTitle, { color: palette.primaryText }]}>
+          <View style={[styles.challengeContainer, { borderWidth: 1, borderColor: 'rgba(254, 205, 211, 0.5)' }]}>
+            <ThemedText style={[styles.challengeTitle, { color: palette.nameText }]}>
               Your 21-Day Transformation
             </ThemedText>
             <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBarBackground, { backgroundColor: 'rgba(75, 88, 102, 0.1)' }]}> 
-                <View style={[styles.progressBarFill, { 
-                  width: `${progressPercent}%`,
-                  backgroundColor: palette.accentPurple
-                }]} />
+              <View style={[styles.progressBarBackground, { backgroundColor: 'rgba(255, 228, 230, 0.7)' }]}> 
+                <LinearGradient
+                  colors={['rgb(251, 113, 133)', 'rgb(244, 63, 94)']} // rose-400 to rose-500
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.progressBarFill, { width: `${progressPercent}%` }]}
+                />
               </View>
               <View style={styles.streakInfo}>
-                <ThemedText style={[styles.progressText, { color: palette.secondaryText }]}>
+                <ThemedText style={[styles.progressText, { color: palette.primaryText }]}>
                   Day {currentStreakDay} / {challengeTotalDays}
                 </ThemedText>
                 {currentStreakDay > 1 && (
-                  <View style={styles.streakBadge}>
+                  <LinearGradient
+                    colors={['rgb(244, 63, 94)', 'rgb(225, 29, 72)']} // rose-500 to rose-600
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.streakBadge}
+                  >
                     <MaterialCommunityIcons name="fire" size={14} color="#FFFFFF" />
                     <Text style={styles.streakText}>{currentStreakDay} day streak!</Text>
-                  </View>
+                  </LinearGradient>
                 )}
               </View>
             </View>
@@ -207,14 +225,22 @@ const OnboardingPopup: React.FC<OnboardingPopupProps> = ({
           {/* Footer Button */}
           <View style={styles.footer}>
             <TouchableOpacity 
-              style={[styles.continueButton, { backgroundColor: palette.buttonBackground }]} 
+              style={styles.continueButtonContainer}
               onPress={onDismiss}
             >
-               <MaterialCommunityIcons name="music-note" size={24} color={palette.buttonText} style={styles.buttonIcon} />
-              <Text style={styles.continueButtonText}>Begin Your Journey</Text>
+              <LinearGradient
+                colors={['rgb(244, 63, 94)', 'rgb(225, 29, 72)']} // rose-500 to rose-600
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.continueButton}
+                borderRadius={12}
+              >
+                <MaterialCommunityIcons name="music-note" size={24} color="#FFFFFF" style={styles.buttonIcon} />
+                <Text style={styles.continueButtonText}>Begin Your Journey</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
-        </View>
+        </LinearGradient>
       </View>
     </Modal>
   );
@@ -248,7 +274,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: palette.iconsBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -294,6 +319,11 @@ const styles = StyleSheet.create({
     backgroundColor: palette.messageBubble,
     paddingVertical: 20,
     borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   challengeTitle: {
     fontSize: 16,
@@ -326,7 +356,6 @@ const styles = StyleSheet.create({
   streakBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF6B6B',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 12,
@@ -341,6 +370,14 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 5,
   },
+  continueButtonContainer: {
+    borderRadius: 12,
+    shadowColor: 'rgba(244, 63, 94, 0.5)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
   continueButton: {
     paddingVertical: 16,
     paddingHorizontal: 30,
@@ -348,17 +385,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    borderWidth: 0,
   },
   buttonIcon: {
     marginRight: 10,
   },
   continueButtonText: {
-    color: palette.buttonText,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

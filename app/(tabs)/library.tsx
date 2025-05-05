@@ -163,7 +163,7 @@ export default function LibraryScreen() {
           <MaterialCommunityIcons 
             name="play-circle-outline" 
             size={22} 
-            color="rgba(75, 88, 102, 1)" /* Darker icon color */
+            color="rgb(136, 19, 55)" /* Darker icon color */
           />
         </View>
         <TouchableOpacity 
@@ -189,7 +189,7 @@ export default function LibraryScreen() {
               ]
             );
           }}>
-          <MaterialCommunityIcons name="dots-horizontal" size={22} color="rgba(75, 88, 102, 1)" />
+          <MaterialCommunityIcons name="dots-horizontal" size={22} color="rgb(136, 19, 55)" />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -215,13 +215,13 @@ export default function LibraryScreen() {
       
       <View style={styles.filterContainer}>
         <TouchableOpacity style={styles.filterButton}>
-          <MaterialCommunityIcons name="sort" size={16} color="rgba(107, 114, 128, 1)" />
+          <MaterialCommunityIcons name="sort" size={16} color="rgb(225, 29, 72)" />
           <ThemedText style={styles.filterText}>Recent</ThemedText>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.filterButton}>
-          <MaterialCommunityIcons name="filter-variant" size={16} color="rgba(107, 114, 128, 1)" />
-          <ThemedText style={styles.filterText}>Filter</ThemedText>
+          <MaterialCommunityIcons name="filter-variant" size={16} color="rgb(225, 29, 72)" />
+          <ThemedText style={styles.filterText}>Mood</ThemedText>
         </TouchableOpacity>
       </View>
     </View>
@@ -235,7 +235,7 @@ export default function LibraryScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: 'rgba(237, 227, 249, 1)' }]}>
+    <View style={[styles.container, { backgroundColor: 'rgb(255, 251, 235)' }]}>
       <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
       
       {/* Animated Header */}
@@ -252,7 +252,7 @@ export default function LibraryScreen() {
           style={[
             styles.headerGradient,
             {
-              backgroundColor: 'rgba(156, 138, 222, 1)',
+              backgroundColor: 'rgb(244, 63, 94)',
             }
           ]}
         >
@@ -260,7 +260,7 @@ export default function LibraryScreen() {
             <MaterialCommunityIcons 
               name="music-box-multiple" 
               size={28} 
-              color="rgba(61, 44, 141, 1)" 
+              color="rgb(255, 228, 230)" 
               style={styles.headerIcon} 
             />
             <ThemedText style={styles.mainHeaderTitle}>Liked Songs</ThemedText>
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   mainHeaderTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'rgba(75, 88, 102, 1)',
+    color: 'rgb(255, 228, 230)',
     textAlign: 'center',
   },
   subHeaderTitle: {
@@ -338,11 +338,11 @@ const styles = StyleSheet.create({
   statCount: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: 'rgba(75, 88, 102, 1)',
+    color: 'rgb(136, 19, 55)',
   },
   statLabel: {
     fontSize: 12,
-    color: 'rgba(75, 88, 102, 1)',
+    color: 'rgb(190, 18, 60)',
     opacity: 1,
     marginTop: 4,
   },
@@ -354,17 +354,17 @@ const styles = StyleSheet.create({
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(237, 227, 249, 1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: 'rgba(75, 88, 102, 1)',
+    borderColor: 'rgb(254, 205, 211)',
   },
   filterText: {
     fontSize: 14,
     marginLeft: 6,
-    color: 'rgba(75, 88, 102, 1)',
+    color: 'rgb(225, 29, 72)',
   },
   songItem: {
     flexDirection: 'row',
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 8,
     borderRadius: 12,
-    backgroundColor: 'rgb(193, 176, 255)',
+    backgroundColor: 'rgb(254, 243, 199)',
    
     width: '95%',
   },
@@ -392,14 +392,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
-    color: 'rgba(95, 59, 140, 1)',
+    color: 'rgb(225, 29, 72)',
     fontFamily: 'Poppins',
     //font-family: "Poppins", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
   },
   songArtist: {
     fontSize: 14,
-    color: 'rgba(107, 114, 128, 1)',
+    color: 'rgb(136, 19, 55)',
   },
   actionButtonsContainer: {
     flexDirection: 'row',

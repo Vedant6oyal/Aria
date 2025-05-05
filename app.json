@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "aria",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "description": "A beautiful music streaming app like Spotify",
     "primaryColor": "#1DB954",
     "ios": {
@@ -24,7 +24,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#121212"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -55,8 +59,14 @@
       "typedRoutes": true
     },
     "extra": {
-      "supabaseUrl":    "https://bxhcphrtdfoicscsinqf.supabase.co",
-      "supabaseAnonKey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4aGNwaHJ0ZGZvaWNzY3NpbnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NDY0MzIsImV4cCI6MjA2MTMyMjQzMn0.O18XQStBUkah02qn1LZj0gKDNXpjHuSq4p-HSl4YreU"
+      "supabaseUrl": "https://bxhcphrtdfoicscsinqf.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4aGNwaHJ0ZGZvaWNzY3NpbnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NDY0MzIsImV4cCI6MjA2MTMyMjQzMn0.O18XQStBUkah02qn1LZj0gKDNXpjHuSq4p-HSl4YreU",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "3e45590c-fd51-43d0-9fc9-42531542b70d"
+      }
     }
   }
 }
