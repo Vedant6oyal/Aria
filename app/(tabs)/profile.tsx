@@ -11,9 +11,6 @@ import {
 import { 
   LinearGradient 
 } from 'expo-linear-gradient';
-import Svg, { 
-  Circle 
-} from 'react-native-svg';
 import { 
   Feather,
   FontAwesome,
@@ -42,7 +39,17 @@ const userData = {
     selfCompassion: 65,
     positiveThinking: 58,
     gratitude: 80
-  }
+  },
+  totalDays: 45,
+  activityCalendar: [
+    { date: '2025-05-01', completed: true },
+    { date: '2025-05-02', completed: true },
+    { date: '2025-05-03', completed: false },
+    { date: '2025-05-04', completed: true },
+    { date: '2025-05-05', completed: true },
+    { date: '2025-05-06', completed: true },
+    { date: '2025-05-07', completed: true },
+  ]
 };
 
 // Affirmations list
@@ -55,6 +62,163 @@ const affirmations = [
   "My potential to succeed is infinite.",
   "I trust my journey and am open to where it leads me."
 ];
+
+// Activity Streak Component
+interface DayActivity {
+  date: string;
+  completed: boolean;
+}
+
+interface ActivityStreakProps {
+  streak: number;
+  totalDays: number;
+  activityCalendar: DayActivity[];
+}
+
+const ActivityStreak: React.FC<ActivityStreakProps> = ({ 
+  streak, 
+  totalDays,
+  activityCalendar 
+}) => {
+  // Get the last 7 days of activity for the mini calendar view
+  const recentActivity = activityCalendar.slice(-7);
+  
+  // Format date to day name (e.g., "Mon")
+  const formatDay = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3);
+  };
+
+  return (
+    <View style={styles.activityStreakContainer}>
+      <View style={styles.activityStreakHeader}>
+        <View style={styles.activityStreakHeaderLeft}>
+          <Feather name="calendar" size={16} color="rgb(225, 29, 72)" style={styles.activityStreakIcon} />
+          <Text style={styles.activityStreakTitle}>Activity Streak</Text>
+        </View>
+        <View style={styles.activityStreakHeaderRight}>
+          <Feather name="award" size={16} color="rgb(253, 230, 138)" style={styles.activityStreakIcon} />
+          <Text style={styles.activityStreakDays}>{streak} Days</Text>
+        </View>
+      </View>
+      
+      <View style={styles.activityStreakStats}>
+        <Text style={styles.activityStreakStat}>
+          <Text style={styles.activityStreakStatBold}>{totalDays}</Text> Total Days
+        </Text>
+        <Text style={styles.activityStreakStat}>
+          <Text style={styles.activityStreakStatBold}>{Math.round((totalDays / 90) * 100)}%</Text> of 90-Day Program
+        </Text>
+      </View>
+      
+      {/* Mini calendar view of the last 7 days */}
+      <View style={styles.activityStreakCalendar}>
+        {recentActivity.map((day, index) => (
+          <View key={index} style={styles.activityStreakDay}>
+            <Text style={styles.activityStreakDayText}>{formatDay(day.date)}</Text>
+            <View 
+              style={[
+                styles.activityStreakDayCircle,
+                day.completed ? styles.activityStreakDayCompleted : styles.activityStreakDayIncomplete
+              ]}
+            >
+              <Text style={day.completed ? styles.activityStreakDayCompletedText : styles.activityStreakDayIncompleteText}>
+                {day.completed ? '✓' : '·'}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+      
+      <Text style={styles.activityStreakMotivation}>
+        Keep going! You're building new neural pathways.
+      </Text>
+    </View>
+  );
+};
+
+// Milestones Component
+interface Milestone {
+  id: number;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+  completedDate?: string;
+}
+
+interface MilestonesProps {
+  milestones: Milestone[];
+}
+
+const milestones = [
+  { id: 1, title: 'Complete 7 days of meditation', description: 'Congratulations on completing your first week of meditation!', isCompleted: true, completedDate: '2025-05-01' },
+  { id: 2, title: 'Reach 30 days of meditation', description: 'You\'re on a roll! Keep up the good work.', isCompleted: false },
+  { id: 3, title: 'Complete 60 days of meditation', description: 'You\'re getting close to your goal! Keep pushing forward.', isCompleted: false },
+  { id: 4, title: 'Reach 90 days of meditation', description: 'You did it! You\'ve completed the 90-day program.', isCompleted: false },
+];
+
+const Milestones: React.FC<MilestonesProps> = ({ milestones }) => {
+  return (
+    <View style={styles.milestonesContainer}>
+      <Text style={styles.milestonesTitle}>Achievement Milestones</Text>
+      
+      <View style={styles.milestonesContent}>
+        {milestones.map((milestone, index) => (
+          <View 
+            key={milestone.id}
+            style={styles.milestoneItem}
+          >
+            {/* Connector line between milestones */}
+            {index !== milestones.length - 1 && (
+              <View 
+                style={[
+                  styles.milestoneConnector,
+                  milestone.isCompleted ? styles.milestoneConnectorCompleted : styles.milestoneConnectorIncomplete
+                ]}
+              />
+            )}
+            
+            {/* Milestone circle */}
+            <View style={styles.milestoneCircleContainer}>
+              {milestone.isCompleted ? (
+                <Feather name="check-circle" size={28} color="rgb(244, 63, 94)" />
+              ) : (
+                <Feather name="circle" size={28} color="rgb(253, 164, 175)" />
+              )}
+            </View>
+            
+            {/* Milestone content */}
+            <View 
+              style={[
+                styles.milestoneContent,
+                milestone.isCompleted ? styles.milestoneContentCompleted : styles.milestoneContentIncomplete
+              ]}
+            >
+              <Text style={[
+                styles.milestoneTitle,
+                milestone.isCompleted ? styles.milestoneTitleCompleted : styles.milestoneTitleIncomplete
+              ]}>
+                {milestone.title}
+              </Text>
+              <Text style={[
+                styles.milestoneDescription,
+                milestone.isCompleted ? styles.milestoneDescriptionCompleted : styles.milestoneDescriptionIncomplete
+              ]}>
+                {milestone.description}
+              </Text>
+              
+              {milestone.completedDate && (
+                <Text style={styles.milestoneDate}>
+                  Completed on {new Date(milestone.completedDate).toLocaleDateString()}
+                </Text>
+              )}
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
@@ -91,35 +255,11 @@ export default function ProfileScreen() {
 
   // Progress Circle Component
   const ProgressCircle = ({ value, title, color }) => {
-    const radius = 30;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (value / 100) * circumference;
-    
     return (
       <View style={styles.progressCircleContainer}>
         <View style={styles.progressCircle}>
-          <Svg width="80" height="80" viewBox="0 0 100 100">
-            <Circle
-              cx="50"
-              cy="50"
-              r={radius}
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="8"
-              fill="transparent"
-            />
-            <Circle
-              cx="50"
-              cy="50"
-              r={radius}
-              stroke={color}
-              strokeWidth="8"
-              fill="transparent"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              transform="rotate(-90, 50, 50)"
-            />
-          </Svg>
+          <View style={styles.progressCircleBackground} />
+          <View style={[styles.progressCircleFill, { width: `${value}%`, backgroundColor: color }]} />
           <View style={styles.progressTextContainer}>
             <Text style={[styles.progressText, { color: '#BE123C' }]}>{value}%</Text>
           </View>
@@ -185,57 +325,15 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Weekly Goal Progress */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Weekly Goal</Text>
-            <View style={styles.weeklyGoalContainer}>
-              {[...Array(userData.weeklyGoal)].map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.goalBox,
-                    i < userData.weeklyCompleted ? styles.goalCompleted : styles.goalIncomplete
-                  ]}
-                >
-                  {i < userData.weeklyCompleted ? (
-                    <Feather name="check-circle" size={24} color="white" />
-                  ) : (
-                    <Feather name="heart" size={24} color="rgb(253, 164, 175)" />
-                  )}
-                </View>
-              ))}
-            </View>
-            <Text style={styles.weeklyGoalText}>
-              {userData.weeklyCompleted}/{userData.weeklyGoal} activities this week
-            </Text>
-          </View>
+          {/* Activity Streak Component */}
+          <ActivityStreak 
+            streak={userData.streak} 
+            totalDays={userData.totalDays} 
+            activityCalendar={userData.activityCalendar} 
+          />
 
-          {/* Wellness Scores */}
-          <Text style={[styles.cardTitle, styles.sectionTitle]}>Your Wellness Journey</Text>
-          <View style={styles.card}>
-            <View style={styles.wellnessContainer}>
-              <ProgressCircle
-                value={userData.wellnessScores.selfEsteem}
-                title="Self-Esteem"
-                color="rgb(244, 63, 94)" // rose-500
-              />
-              <ProgressCircle
-                value={userData.wellnessScores.selfCompassion}
-                title="Self-Compassion"
-                color="rgb(225, 29, 72)" // rose-600
-              />
-              <ProgressCircle
-                value={userData.wellnessScores.positiveThinking}
-                title="Positive Thinking"
-                color="rgb(253, 164, 175)" // rose-300
-              />
-              <ProgressCircle
-                value={userData.wellnessScores.gratitude}
-                title="Gratitude"
-                color="rgb(253, 230, 138)" // amber-200
-              />
-            </View>
-          </View>
+          {/* Milestones Component */}
+          <Milestones milestones={milestones} />
 
           {/* Last Activity */}
           <View style={styles.card}>
@@ -249,22 +347,6 @@ export default function ProfileScreen() {
                 <Text style={styles.activitySubtitle}>Great job!</Text>
               </View>
             </View>
-          </View>
-
-          {/* Daily Affirmation */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Daily Affirmation</Text>
-            <View style={styles.affirmationContainer}>
-              <Text style={styles.affirmationText}>
-                "{currentAffirmation}"
-              </Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.newAffirmationButton} 
-              onPress={getNewAffirmation}
-            >
-              <Text style={styles.newAffirmationText}>New Affirmation</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Supabase Songs Button - Keeping this from the original */}
@@ -378,62 +460,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgb(225, 29, 72)', // rose-600
   },
-  weeklyGoalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginVertical: 16,
-    gap: 4,
-  },
-  goalBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  goalCompleted: {
-    backgroundColor: 'rgb(244, 63, 94)', // rose-500
-  },
-  goalIncomplete: {
-    backgroundColor: 'rgb(254, 205, 211)', // rose-200
-  },
-  weeklyGoalText: {
-    textAlign: 'center',
-    color: 'rgb(225, 29, 72)', // rose-600
-    fontSize: 13,
-  },
-  wellnessContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-  },
-  progressCircleContainer: {
-    alignItems: 'center',
-    width: '25%',
-    marginBottom: 16,
-  },
-  progressCircle: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progressTextContainer: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progressText: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  progressTitle: {
-    marginTop: 8,
-    color: 'rgb(136, 19, 55)', // rose-900
-    fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
   lastActivityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -454,31 +480,6 @@ const styles = StyleSheet.create({
   activitySubtitle: {
     color: 'rgb(225, 29, 72)', // rose-600
     fontSize: 13,
-  },
-  affirmationContainer: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    backgroundColor: 'rgb(254, 243, 199)', // amber-100
-  },
-  affirmationText: {
-    fontSize: 18,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    lineHeight: 26,
-    color: 'rgb(136, 19, 55)', // rose-900
-  },
-  newAffirmationButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgb(244, 63, 94)',
-  },
-  newAffirmationText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: 'rgb(244, 63, 94)',
   },
   supabaseButton: {
     flexDirection: 'row',
@@ -510,5 +511,186 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  // Activity Streak Component Styles
+  activityStreakContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  activityStreakHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  activityStreakHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activityStreakHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activityStreakIcon: {
+    marginRight: 8,
+  },
+  activityStreakTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'rgb(190, 18, 60)', // rose-700
+  },
+  activityStreakDays: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'rgb(225, 29, 72)', // rose-600
+  },
+  activityStreakStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  activityStreakStat: {
+    fontSize: 14,
+    color: 'rgb(136, 19, 55)', // rose-900
+  },
+  activityStreakStatBold: {
+    fontWeight: '600',
+  },
+  activityStreakCalendar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  activityStreakDay: {
+    alignItems: 'center',
+  },
+  activityStreakDayText: {
+    fontSize: 12,
+    color: 'rgb(136, 19, 55)', // rose-900
+    marginBottom: 4,
+  },
+  activityStreakDayCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activityStreakDayCompleted: {
+    backgroundColor: 'rgb(244, 63, 94)', // rose-500
+  },
+  activityStreakDayIncomplete: {
+    backgroundColor: 'rgb(254, 205, 211)', // rose-200
+  },
+  activityStreakDayCompletedText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  activityStreakDayIncompleteText: {
+    color: 'rgb(253, 164, 175)', // rose-300
+    fontSize: 16,
+  },
+  activityStreakMotivation: {
+    textAlign: 'center',
+    marginTop: 16,
+    fontSize: 14,
+    color: 'rgb(225, 29, 72)', // rose-600
+    fontWeight: '500',
+  },
+  // Milestones Component Styles
+  milestonesContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  milestonesTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'rgb(190, 18, 60)', // rose-700
+    marginBottom: 16,
+  },
+  milestonesContent: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  milestoneItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  milestoneConnector: {
+    width: 2,
+    height: 40,
+    backgroundColor: 'rgb(225, 29, 72)', // rose-600
+    position: 'absolute',
+    left: 18,
+    top: 20,
+  },
+  milestoneConnectorCompleted: {
+    backgroundColor: 'rgb(244, 63, 94)', // rose-500
+  },
+  milestoneConnectorIncomplete: {
+    backgroundColor: 'rgb(254, 205, 211)', // rose-200
+  },
+  milestoneCircleContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  milestoneContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  milestoneContentCompleted: {
+    backgroundColor: 'rgb(244, 63, 94)', // rose-500
+    padding: 12,
+    borderRadius: 12,
+  },
+  milestoneContentIncomplete: {
+    backgroundColor: 'rgb(254, 205, 211)', // rose-200
+    padding: 12,
+    borderRadius: 12,
+  },
+  milestoneTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgb(136, 19, 55)', // rose-900
+  },
+  milestoneTitleCompleted: {
+    color: 'white',
+  },
+  milestoneTitleIncomplete: {
+    color: 'rgb(225, 29, 72)', // rose-600
+  },
+  milestoneDescription: {
+    fontSize: 14,
+    color: 'rgb(136, 19, 55)', // rose-900
+  },
+  milestoneDescriptionCompleted: {
+    color: 'white',
+  },
+  milestoneDescriptionIncomplete: {
+    color: 'rgb(225, 29, 72)', // rose-600
+  },
+  milestoneDate: {
+    fontSize: 12,
+    color: 'rgb(225, 29, 72)', // rose-600
+    marginTop: 4,
   },
 });
