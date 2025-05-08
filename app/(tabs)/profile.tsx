@@ -283,7 +283,10 @@ export default function ProfileScreen() {
     >
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
           {/* Header */}
           <View style={styles.header}>
             <View>
@@ -379,22 +382,30 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 16, 
+    paddingTop: 16, 
+  },
+  scrollContent: {
+    paddingHorizontal: 8,
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
+    paddingVertical: 8,
+    width: '100%',
+    maxWidth: 500,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'rgb(190, 18, 60)', // rose-700
+    color: 'rgb(190, 18, 60)', 
+    marginBottom: 4, 
   },
   headerSubtitle: {
-    color: 'rgb(225, 29, 72)', // rose-600
+    color: 'rgb(225, 29, 72)', 
   },
   profileIcon: {
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
@@ -404,24 +415,27 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
+    padding: 16, 
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: '100%',
+    maxWidth: 500,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16, 
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'rgb(190, 18, 60)', // rose-700
+    color: 'rgb(190, 18, 60)', 
+    marginBottom: 8, 
   },
   sectionTitle: {
     marginBottom: 12,
@@ -433,62 +447,67 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   ratingText: {
-    color: 'rgb(225, 29, 72)', // rose-600
+    color: 'rgb(225, 29, 72)', 
     fontWeight: '500',
   },
   progressBarBackground: {
     height: 12,
-    backgroundColor: 'rgb(255, 228, 230)', // rose-100
+    backgroundColor: 'rgb(255, 228, 230)', 
     borderRadius: 6,
     marginBottom: 16,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: 'rgb(244, 63, 94)', // rose-500
+    backgroundColor: 'rgb(244, 63, 94)', 
     borderRadius: 6,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 8, 
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8, 
   },
   statText: {
     fontSize: 13,
-    color: 'rgb(225, 29, 72)', // rose-600
+    color: 'rgb(225, 29, 72)', 
   },
   lastActivityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgb(254, 243, 199)', // amber-100
-    padding: 12,
+    gap: 16, 
+    backgroundColor: 'rgb(254, 243, 199)', 
+    padding: 16, 
     borderRadius: 12,
+    marginTop: 8, 
   },
   activityIcon: {
-    backgroundColor: 'rgb(251, 113, 133)', // rose-400
+    backgroundColor: 'rgb(251, 113, 133)', 
     padding: 12,
     borderRadius: 25,
   },
   activityTitle: {
-    color: 'rgb(136, 19, 55)', // rose-900
+    color: 'rgb(136, 19, 55)', 
     fontWeight: '500',
+    marginBottom: 4, 
   },
   activitySubtitle: {
-    color: 'rgb(225, 29, 72)', // rose-600
+    color: 'rgb(225, 29, 72)', 
     fontSize: 13,
   },
   supabaseButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14, 
+    paddingHorizontal: 16, 
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgb(49, 120, 198)',
+    marginTop: 8, 
   },
   supabaseButtonText: {
     marginLeft: 8,
@@ -500,7 +519,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 30,
-    backgroundColor: 'rgb(244, 63, 94)', // rose-500
+    backgroundColor: 'rgb(244, 63, 94)', 
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -516,19 +535,21 @@ const styles = StyleSheet.create({
   activityStreakContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
+    padding: 16, 
+    marginBottom: 16, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: '100%',
+    maxWidth: 500,
   },
   activityStreakHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 16, 
   },
   activityStreakHeaderLeft: {
     flexDirection: 'row',
@@ -544,21 +565,21 @@ const styles = StyleSheet.create({
   activityStreakTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: 'rgb(190, 18, 60)', // rose-700
+    color: 'rgb(190, 18, 60)', 
   },
   activityStreakDays: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: 'rgb(225, 29, 72)', // rose-600
+    color: 'rgb(225, 29, 72)', 
   },
   activityStreakStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 16, 
   },
   activityStreakStat: {
     fontSize: 14,
-    color: 'rgb(136, 19, 55)', // rose-900
+    color: 'rgb(136, 19, 55)', 
   },
   activityStreakStatBold: {
     fontWeight: '600',
@@ -566,15 +587,15 @@ const styles = StyleSheet.create({
   activityStreakCalendar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 8, 
   },
   activityStreakDay: {
     alignItems: 'center',
   },
   activityStreakDayText: {
     fontSize: 12,
-    color: 'rgb(136, 19, 55)', // rose-900
-    marginBottom: 4,
+    color: 'rgb(136, 19, 55)', 
+    marginBottom: 4, 
   },
   activityStreakDayCircle: {
     width: 32,
@@ -584,43 +605,45 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activityStreakDayCompleted: {
-    backgroundColor: 'rgb(244, 63, 94)', // rose-500
+    backgroundColor: 'rgb(244, 63, 94)', 
   },
   activityStreakDayIncomplete: {
-    backgroundColor: 'rgb(254, 205, 211)', // rose-200
+    backgroundColor: 'rgb(254, 205, 211)', 
   },
   activityStreakDayCompletedText: {
     color: 'white',
     fontSize: 16,
   },
   activityStreakDayIncompleteText: {
-    color: 'rgb(253, 164, 175)', // rose-300
+    color: 'rgb(253, 164, 175)', 
     fontSize: 16,
   },
   activityStreakMotivation: {
     textAlign: 'center',
     marginTop: 16,
     fontSize: 14,
-    color: 'rgb(225, 29, 72)', // rose-600
+    color: 'rgb(225, 29, 72)', 
     fontWeight: '500',
   },
   // Milestones Component Styles
   milestonesContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
+    padding: 16, 
+    marginBottom: 16, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: '100%',
+    maxWidth: 500,
   },
   milestonesTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: 'rgb(190, 18, 60)', // rose-700
-    marginBottom: 16,
+    color: 'rgb(190, 18, 60)', 
+    marginBottom: 16, 
   },
   milestonesContent: {
     flexDirection: 'column',
@@ -629,21 +652,21 @@ const styles = StyleSheet.create({
   milestoneItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 24, 
   },
   milestoneConnector: {
     width: 2,
     height: 40,
-    backgroundColor: 'rgb(225, 29, 72)', // rose-600
+    backgroundColor: 'rgb(225, 29, 72)', 
     position: 'absolute',
     left: 18,
     top: 20,
   },
   milestoneConnectorCompleted: {
-    backgroundColor: 'rgb(244, 63, 94)', // rose-500
+    backgroundColor: 'rgb(244, 63, 94)', 
   },
   milestoneConnectorIncomplete: {
-    backgroundColor: 'rgb(254, 205, 211)', // rose-200
+    backgroundColor: 'rgb(254, 205, 211)', 
   },
   milestoneCircleContainer: {
     width: 40,
@@ -658,39 +681,82 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   milestoneContentCompleted: {
-    backgroundColor: 'rgb(244, 63, 94)', // rose-500
+    backgroundColor: 'rgb(244, 63, 94)', 
     padding: 12,
     borderRadius: 12,
   },
   milestoneContentIncomplete: {
-    backgroundColor: 'rgb(254, 205, 211)', // rose-200
+    backgroundColor: 'rgb(254, 205, 211)', 
     padding: 12,
     borderRadius: 12,
   },
   milestoneTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'rgb(136, 19, 55)', // rose-900
+    color: 'rgb(136, 19, 55)', 
   },
   milestoneTitleCompleted: {
     color: 'white',
   },
   milestoneTitleIncomplete: {
-    color: 'rgb(225, 29, 72)', // rose-600
+    color: 'rgb(225, 29, 72)', 
   },
   milestoneDescription: {
     fontSize: 14,
-    color: 'rgb(136, 19, 55)', // rose-900
+    color: 'rgb(136, 19, 55)', 
   },
   milestoneDescriptionCompleted: {
     color: 'white',
   },
   milestoneDescriptionIncomplete: {
-    color: 'rgb(225, 29, 72)', // rose-600
+    color: 'rgb(225, 29, 72)', 
   },
   milestoneDate: {
     fontSize: 12,
-    color: 'rgb(225, 29, 72)', // rose-600
-    marginTop: 4,
+    color: 'rgb(225, 29, 72)', 
+    marginTop: 4, 
+  },
+  progressCircleContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  progressCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 12,
+    borderColor: 'rgb(255, 228, 230)',
+  },
+  progressCircleBackground: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+    borderColor: 'rgb(255, 228, 230)',
+    borderWidth: 12,
+  },
+  progressCircleFill: {
+    position: 'absolute',
+    height: '100%',
+    borderRadius: 60,
+  },
+  progressTextContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  progressTitle: {
+    fontSize: 16,
+    color: 'rgb(225, 29, 72)',
+    marginBottom: 8,
   },
 });
