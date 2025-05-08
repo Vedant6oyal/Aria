@@ -58,7 +58,8 @@ const convertReelsToVideoReels = (reels: ReelType[]): VideoReel[] => {
     artist: reel.creator,
     artwork: reel.thumbnailUrl,
     duration: reel.duration,
-    mediaSource: reel.videoUrl,
+    videoUrl: reel.videoUrl,
+    mediaSource: reel.videoUrl, // Keep for backward compatibility
     coverColor: ['#3A1078', '#D21312', '#2D4356'][Math.floor(Math.random() * 3)],
     secondaryColor: ['#4E31AA', '#F15A59', '#435B66'][Math.floor(Math.random() * 3)],
     isVideo: true,
@@ -909,7 +910,7 @@ export default function ReelsScreen() {
                 }
               }
             }}
-            source={item.mediaSource}
+            source={item.videoUrl}
             style={styles.video}
             resizeMode={ResizeMode.COVER}
             shouldPlay={index === activeVideoIndexState}

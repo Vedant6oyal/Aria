@@ -178,7 +178,7 @@ export default function LibraryScreen() {
               `by ${item.creator}`,
               [
                 {
-                  text: 'Remove from Library',
+                  text: 'Remove from Liked Songs',
                   onPress: () => console.log(`Remove ${item.title} from library`),
                   style: 'destructive'
                 },

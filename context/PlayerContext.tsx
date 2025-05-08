@@ -9,7 +9,8 @@ export interface Track {
   artist: string;
   artwork: string;
   duration?: number;
-  mediaSource?: any;
+  mediaSource?: any; // Keep for backward compatibility
+  videoUrl?: any;    // Add this for consistency with other components
   isVideo?: boolean;
   coverColor?: string;
   secondaryColor?: string;
