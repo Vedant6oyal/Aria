@@ -1,5 +1,5 @@
 // components/ReelsMiniPlayer.tsx
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -40,6 +40,8 @@ export function ReelsMiniPlayer({
 
   // Handle play/pause button press
   const lastClickRef = useRef<number | null>(null);
+  const [isToggling, setIsToggling] = useState(false);
+  
   const handlePlayPausePress = (event: GestureResponderEvent) => {
     // Stop propagation to prevent the container's onPress from firing
     event.stopPropagation();
@@ -49,13 +51,47 @@ export function ReelsMiniPlayer({
     if (lastClickRef.current && now - lastClickRef.current < 300) {
       return; // Ignore clicks that happen too quickly
     }
-    lastClickRef.current = now;
     
-    // Use the context's toggle function if available, otherwise fallback to props
-    if (reelsPlayer.currentReel) {
-      reelsPlayer.togglePlayPause();
+    // Prevent additional clicks while toggling is in progress
+    if (isToggling) {
+      return;
+    }
+    
+    // Set clicking flag and timestamp
+    lastClickRef.current = now;
+    setIsToggling(true);
+    
+    // Use the context's video reference if available, otherwise fallback to props
+    if (reelsPlayer.currentReel && reelsPlayer.playbackInstance) {
+      // Access the video instance directly
+      const videoRef = reelsPlayer.playbackInstance;
+      
+      // Get current status and toggle playback
+      videoRef.getStatusAsync().then((status: any) => {
+        if (status.isLoaded) {
+          if (status.isPlaying) {
+            videoRef.pauseAsync();
+          } else {
+            videoRef.playAsync();
+          }
+        }
+        
+        // Reset toggling state after a delay
+        setTimeout(() => {
+          setIsToggling(false);
+        }, 300);
+      }).catch(() => {
+        // Reset toggling state if there's an error
+        setIsToggling(false);
+      });
     } else {
+      // Fallback to props for non-context usage
       onPlayPause(event);
+      
+      // Reset toggling state after a delay
+      setTimeout(() => {
+        setIsToggling(false);
+      }, 300);
     }
   };
 
