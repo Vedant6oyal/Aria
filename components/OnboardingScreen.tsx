@@ -150,8 +150,10 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         style={[styles.optionButton, isSelected && styles.selectedOption]} 
         onPress={() => updateUserData(dataKey, value)}
       >
-        <Text style={styles.optionText}>{option}</Text>
-        <View style={[styles.radioButton, isSelected && styles.radioSelected]} />
+        <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>{option}</Text>
+        <View style={[styles.radioButton, isSelected && styles.radioSelected]}>
+          {isSelected && <View style={styles.radioInner} />}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -192,7 +194,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
                 <TextInput
                   style={styles.textInput}
                   placeholder="Your name"
-                  placeholderTextColor="rgba(52, 64, 84, 0.5)"
+                  placeholderTextColor="rgba(253, 164, 175, 0.7)"
                   value={userData.name}
                   onChangeText={(text) => updateUserData('name', text)}
                 />
@@ -311,7 +313,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
       case 6:
         return (
           <View style={styles.notificationContainer}>
-            <Ionicons name="notifications" size={60} color="#344054" style={styles.notificationIcon} />
+            <Ionicons name="notifications" size={60} color="#E11D48" style={styles.notificationIcon} />
             
             <Text style={styles.questionText}>Get Personalised Song For You Everyday</Text>
             <Text style={styles.subtitleText}>
@@ -392,7 +394,8 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-colors={['rgba(237, 227, 249, 1)', 'rgba(217, 207, 239, 1)', 'rgba(237, 227, 249, 1)']}        style={styles.gradient}
+        colors={['rgba(255, 251, 235, 1)', 'rgba(255, 228, 230, 1)']}
+        style={styles.gradient}
       >
         <View style={styles.header}>
           <TouchableOpacity 
@@ -401,7 +404,7 @@ colors={['rgba(237, 227, 249, 1)', 'rgba(217, 207, 239, 1)', 'rgba(237, 227, 249
             disabled={!showBackButton}
           >
             {showBackButton && (
-              <Ionicons name="chevron-back" size={24} color="#344054" />
+              <Ionicons name="chevron-back" size={24} color="#BE123C" />
             )}
           </TouchableOpacity>
           
@@ -456,7 +459,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   skipText: {
-    color: 'rgba(75, 88, 102, 1)',
+    color: '#E11D48',
     fontSize: 16,
     fontWeight: '500',
   },
@@ -469,11 +472,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(75, 88, 102, 0.2)',
+    backgroundColor: 'rgba(253, 164, 175, 0.5)',
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: 'rgba(61, 44, 141, 1)',
+    backgroundColor: '#F43F5E',
   },
   content: {
     flex: 1,
@@ -483,13 +486,13 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: 'rgba(75, 88, 102, 1)',
+    color: '#BE123C',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitleText: {
     fontSize: 16,
-    color: 'rgba(107, 114, 128, 1)',
+    color: '#881937',
     textAlign: 'center',
     marginBottom: 32,
   },
@@ -497,54 +500,80 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(237, 227, 249, 1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderWidth: 1,
-    borderColor: 'rgba(208, 213, 221, 0.8)',
+    borderColor: '#FECDD3',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    shadowColor: '#F43F5E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   selectedOption: {
-    borderColor: 'rgba(156, 138, 222, 1)',
-    backgroundColor: 'rgba(193, 176, 255, 0.3)',
+    borderColor: '#F43F5E',
+    backgroundColor: 'rgba(255, 228, 230, 0.8)',
   },
   optionText: {
     fontSize: 16,
-    color: 'rgba(75, 88, 102, 1)',
+    color: '#881937',
     fontWeight: '500',
   },
+  selectedOptionText: {
+    color: '#E11D48',
+    fontWeight: '600',
+  },
   radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 2,
-    borderColor: 'rgba(107, 114, 128, 0.5)',
+    borderColor: '#FCA5AF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   radioSelected: {
-    borderColor: 'rgba(156, 138, 222, 1)',
-    backgroundColor: 'rgba(61, 44, 141, 0.7)',
+    borderColor: '#F43F5E',
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#F43F5E',
   },
   inputContainer: {
     marginBottom: 24,
   },
   textInput: {
-    backgroundColor: 'rgba(237, 227, 249, 0.6)',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderWidth: 1,
-    borderColor: 'rgba(208, 213, 221, 0.8)',
+    borderColor: '#FECDD3',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: 'rgba(75, 88, 102, 1)',
+    color: '#881937',
+    shadowColor: '#F43F5E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   continueButton: {
-    backgroundColor: 'rgba(61, 44, 141, 0.8)',
+    backgroundColor: '#F43F5E',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginTop: 16,
+    shadowColor: '#881937',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
   },
   disabledButton: {
-    backgroundColor: 'rgba(156, 138, 222, 0.5)',
+    backgroundColor: 'rgba(251, 113, 133, 0.5)',
   },
   continueText: {
     color: '#FFFFFF',
@@ -564,12 +593,17 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   allowButton: {
-    backgroundColor: 'rgba(61, 44, 141, 0.7)',
+    backgroundColor: '#F43F5E',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     width: '100%',
     marginBottom: 12,
+    shadowColor: '#881937',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
   },
   allowButtonText: {
     color: '#FFFFFF',
@@ -580,14 +614,18 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   skipNotificationText: {
-    color: 'rgba(107, 114, 128, 1)',
+    color: '#E11D48',
     fontSize: 14,
+    fontWeight: '500',
   },
   illustrationContainer: {
     marginBottom: 30,
     height: 120,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(254, 243, 199, 0.5)',
+    borderRadius: 60,
+    width: 120,
   },
   bellHandImage: {
     width: 120,
@@ -604,17 +642,22 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 100,
     borderWidth: 1,
-    borderColor: 'rgba(107, 114, 128, 0.5)',
-    backgroundColor: 'rgba(237, 227, 249, 0.6)',
+    borderColor: '#FECDD3',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     marginHorizontal: 6,
     marginBottom: 12,
+    shadowColor: '#F43F5E',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   selectedInterest: {
-    backgroundColor: 'rgba(61, 44, 141, 0.7)',
-    borderColor: 'rgba(156, 138, 222, 1)',
+    backgroundColor: '#F43F5E',
+    borderColor: '#E11D48',
   },
   interestText: {
-    color: 'rgba(75, 88, 102, 1)',
+    color: '#881937',
     fontSize: 16,
     fontWeight: '500',
   },
