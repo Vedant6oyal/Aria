@@ -15,7 +15,9 @@ import {
   PanResponder,
   ScrollView,
   Modal,
-  AppState
+  AppState,
+  Share,
+  Alert
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -349,6 +351,9 @@ export default function ReelsScreen() {
   const reels = useMemo(() => {
     return activeTab === 'ForYou' ? forYouReels : likedReels;
   }, [activeTab, forYouReels, likedReels]);
+
+  // Add a state to track liked status for each reel
+  const [likedReelsStatus, setLikedReelsStatus] = useState<Record<string, boolean>>({});
 
   // Effect to handle incoming navigation parameters
   useEffect(() => {
@@ -730,6 +735,12 @@ export default function ReelsScreen() {
     // For a real implementation, this would make an API call to update likes on the server
     console.log(`Liked video: ${reels[index].title}`);
     
+    // Toggle the liked status for this reel
+    setLikedReelsStatus(prev => ({
+      ...prev,
+      [reels[index].id]: !prev[reels[index].id]
+    }));
+    
     // Animate the like button
     Animated.sequence([
       Animated.timing(likeAnimation, {
@@ -771,6 +782,38 @@ export default function ReelsScreen() {
     });
   };
 
+  // Handle share functionality
+  const handleShare = async (item: VideoReel) => {
+    try {
+      // Create share message with app details and current reel info
+      const shareMessage = `Check out this awesome music on Retune: "${item.title}" by ${item.artist}\n\nDownload Retune now!`;
+      const shareOptions = {
+        message: shareMessage,
+        title: 'Share via',
+        subject: 'Retune - Music Discovery App'
+      };
+
+      // Show share dialog
+      const result = await Share.share(shareOptions);
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Shared with activity type of result.activityType
+          console.log(`Shared via: ${result.activityType}`);
+        } else {
+          // Shared
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Dismissed
+        console.log('Share dismissed');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong sharing this content');
+      console.error('Error sharing:', error);
+    }
+  };
+
   // Right side action buttons
   const actionButtons = (item: VideoReel, index: number) => (
     <View style={styles.actionButtons}>
@@ -779,12 +822,19 @@ export default function ReelsScreen() {
         onPress={() => animateLike(index)}
       >
         <Animated.View style={{ transform: [{ scale: likeAnimation }] }}>
-          <MaterialCommunityIcons name="heart" size={40} color="rgb(244, 63, 94)" />
+          <MaterialCommunityIcons 
+            name="heart" 
+            size={40} 
+            color={likedReelsStatus[item.id] ? "rgb(244, 63, 94)" : "#FFFFFF"} 
+          />
         </Animated.View>
         <ThemedText style={styles.actionText}>{formatNumber(item.likes || 0)}</ThemedText>
       </TouchableOpacity>
       
-      <TouchableOpacity style={styles.actionButton}>
+      <TouchableOpacity 
+        style={styles.actionButton}
+        onPress={() => handleShare(item)}
+      >
         <MaterialCommunityIcons name="share" size={40} color="#FFFFFF" />
         <ThemedText style={styles.actionText}>{formatNumber(item.shares || 0)}</ThemedText>
       </TouchableOpacity>
