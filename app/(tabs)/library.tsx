@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, FlatList, StatusBar, Platform, Animated, Image, Alert } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, FlatList, StatusBar, Platform, Animated, Image, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -65,7 +65,7 @@ export const likedSongs: Song[] = [
     title: 'Sorry',
     creator: 'Justin Bieber',
     thumbnailUrl: 'https://images.unsplash.com/photo-1487180144351-b8472da7d491?q=80&w=2072&auto=format&fit=crop',
-    videoUrl: require('@/assets/audio/Everything going to be alright .mp4'),
+    videoUrl: require('@/assets/audio/SelfLove.mp4'),
     duration: 195,
     likes: 72100,
     comments: 3500,
@@ -81,6 +81,18 @@ export default function LibraryScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const scrollY = useRef(new Animated.Value(0)).current;
   const [scrollOffset, setScrollOffset] = useState(0);
+  const [moodModalVisible, setMoodModalVisible] = useState(false);
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  
+  // List of mood options
+  const moodOptions = [
+    { id: 'happy', name: 'Happy', icon: 'emoticon-happy' },
+    { id: 'chill', name: 'Chill', icon: 'weather-sunset' },
+    { id: 'energetic', name: 'Energetic', icon: 'lightning-bolt' },
+    { id: 'romantic', name: 'Romantic', icon: 'heart' },
+    { id: 'sad', name: 'Sad', icon: 'emoticon-sad' },
+    { id: 'focus', name: 'Focus', icon: 'brain' },
+  ];
   
   // Animation values for header
   const headerOpacity = scrollY.interpolate({
@@ -220,12 +232,43 @@ export default function LibraryScreen() {
           <ThemedText style={styles.filterText}>Recent</ThemedText>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.filterButton}>
-          <MaterialCommunityIcons name="filter-variant" size={16} color="rgb(225, 29, 72)" />
-          <ThemedText style={styles.filterText}>Mood</ThemedText>
+        <TouchableOpacity 
+          style={[styles.filterButton, selectedMood && styles.activeFilterButton]} 
+          onPress={() => setMoodModalVisible(true)}
+        >
+          <MaterialCommunityIcons 
+            name={selectedMood ? moodOptions.find(m => m.id === selectedMood)?.icon || "filter-variant" : "filter-variant"} 
+            size={16} 
+            color="rgb(225, 29, 72)" 
+          />
+          <ThemedText style={styles.filterText}>
+            {selectedMood ? moodOptions.find(m => m.id === selectedMood)?.name : "Mood"}
+          </ThemedText>
         </TouchableOpacity>
       </View>
     </View>
+  );
+  
+  // Render mood option
+  const renderMoodOption = ({ item }: { item: { id: string, name: string, icon: string } }) => (
+    <TouchableOpacity 
+      style={[styles.moodOption, selectedMood === item.id && styles.selectedMoodOption]} 
+      onPress={() => {
+        setSelectedMood(item.id);
+        setMoodModalVisible(false);
+        // Here you would filter songs based on the selected mood
+        // For now, we'll just close the modal
+      }}
+    >
+      <MaterialCommunityIcons 
+        name={item.icon} 
+        size={24} 
+        color={selectedMood === item.id ? "#FFFFFF" : "rgb(225, 29, 72)"} 
+      />
+      <ThemedText style={[styles.moodText, selectedMood === item.id && styles.selectedMoodText]}>
+        {item.name}
+      </ThemedText>
+    </TouchableOpacity>
   );
 
   // Handle scroll event without using native driver
@@ -280,6 +323,49 @@ export default function LibraryScreen() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       />
+      
+      {/* Mood Selection Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={moodModalVisible}
+        onRequestClose={() => setMoodModalVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setMoodModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <ThemedText style={styles.modalTitle}>Select a Mood</ThemedText>
+              <TouchableOpacity onPress={() => setMoodModalVisible(false)}>
+                <MaterialCommunityIcons name="close" size={24} color="rgb(225, 29, 72)" />
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              data={moodOptions}
+              renderItem={renderMoodOption}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              contentContainerStyle={styles.moodList}
+            />
+            
+            {selectedMood && (
+              <TouchableOpacity 
+                style={styles.clearMoodButton}
+                onPress={() => {
+                  setSelectedMood(null);
+                  setMoodModalVisible(false);
+                }}
+              >
+                <ThemedText style={styles.clearMoodText}>Clear Filter</ThemedText>
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -362,6 +448,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgb(254, 205, 211)',
   },
+  activeFilterButton: {
+    backgroundColor: 'rgba(254, 205, 211, 0.4)',
+    borderColor: 'rgb(225, 29, 72)',
+  },
   filterText: {
     fontSize: 14,
     marginLeft: 6,
@@ -410,5 +500,72 @@ const styles = StyleSheet.create({
   actionButton: {
     padding: 8, // Consistent padding for both buttons
     marginLeft: 4, // Add some space between buttons
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: 'rgb(255, 251, 235)',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'rgb(225, 29, 72)',
+  },
+  moodList: {
+    paddingVertical: 8,
+  },
+  moodOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    margin: 6,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgb(254, 205, 211)',
+  },
+  selectedMoodOption: {
+    backgroundColor: 'rgb(244, 63, 94)',
+    borderColor: 'rgb(225, 29, 72)',
+  },
+  moodText: {
+    fontSize: 14,
+    marginLeft: 8,
+    color: 'rgb(225, 29, 72)',
+  },
+  selectedMoodText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  clearMoodButton: {
+    alignSelf: 'center',
+    marginTop: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: 'rgba(254, 205, 211, 0.4)',
+  },
+  clearMoodText: {
+    color: 'rgb(225, 29, 72)',
+    fontWeight: '500',
   },
 });

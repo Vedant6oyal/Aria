@@ -32,7 +32,7 @@ const userData = {
   weeklyGoal: 5,
   weeklyCompleted: 4,
   badges: 5, // Using completedMilestones from original
-  lastActivity: "Loving-kindness meditation",
+  lastActivity: "Loving-kindness gratitude",
   overallProgress: 78, // Using positivityScore from original
   wellnessScores: {
     selfEsteem: 72,
@@ -151,10 +151,10 @@ interface MilestonesProps {
 }
 
 const milestones = [
-  { id: 1, title: 'Complete 7 days of meditation', description: 'Congratulations on completing your first week of meditation!', isCompleted: true, completedDate: '2025-05-01' },
-  { id: 2, title: 'Reach 30 days of meditation', description: 'You\'re on a roll! Keep up the good work.', isCompleted: false },
-  { id: 3, title: 'Complete 60 days of meditation', description: 'You\'re getting close to your goal! Keep pushing forward.', isCompleted: false },
-  { id: 4, title: 'Reach 90 days of meditation', description: 'You did it! You\'ve completed the 90-day program.', isCompleted: false },
+  { id: 1, title: 'Complete 7 days of gratitude', description: 'Congratulations on completing your first week of gratitude!', isCompleted: true, completedDate: '2025-05-01' },
+  { id: 2, title: 'Reach 30 days of gratitude', description: 'You\'re on a roll! Keep up the good work.', isCompleted: false },
+  { id: 3, title: 'Complete 60 days of gratitude', description: 'You\'re getting close to your goal! Keep pushing forward.', isCompleted: false },
+  { id: 4, title: 'Reach 90 days of gratitude', description: 'You did it! You\'ve completed the 90-day program.', isCompleted: false },
 ];
 
 const Milestones: React.FC<MilestonesProps> = ({ milestones }) => {
@@ -366,11 +366,6 @@ export default function ProfileScreen() {
           {/* Adding some bottom margin for scrolling */}
           <View style={{ height: 100 }} />
         </ScrollView>
-
-        {/* Floating Action Button */}
-        <TouchableOpacity style={styles.floatingButton}>
-          <Feather name="message-circle" size={24} color="white" />
-        </TouchableOpacity>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -514,22 +509,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: 'rgb(49, 120, 198)',
-  },
-  floatingButton: {
-    position: 'absolute',
-    right: 20,
-    bottom: 30,
-    backgroundColor: 'rgb(244, 63, 94)', 
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   // Activity Streak Component Styles
   activityStreakContainer: {
